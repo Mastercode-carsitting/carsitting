@@ -112,9 +112,11 @@ Gérées dans `src/layouts/Base.astro` : chaque page passe son `title` et sa `de
 
 Après une mise en ligne, forcer la mise à jour des aperçus déjà en cache avec le [débogueur Facebook](https://developers.facebook.com/tools/debug/) et le [Post Inspector LinkedIn](https://www.linkedin.com/post-inspector/).
 
-## Déploiement (Vercel)
+## Déploiement (Netlify)
 
-Pas encore fait. Le site est statique : il suffit de relier ce dépôt à un projet Vercel (preset Astro détecté automatiquement) et d'y définir `PUBLIC_FORM_ENDPOINT` et `SITE_URL`.
+Le site est statique. Sur Netlify : relier le dépôt GitHub (la configuration est dans `netlify.toml` : `npm run build`, dossier `dist`), puis définir `SITE_URL` (`https://carsitting.fr`) et, quand le service d'envoi sera choisi, `PUBLIC_FORM_ENDPOINT`. Le nom de domaine (carsitting.fr) est chez LWS : seuls les enregistrements A, AAAA et `www` de la zone DNS changent, avec les valeurs données par Netlify. **Ne jamais toucher aux enregistrements MX, TXT (SPF) et `mail`** : ils font fonctionner les adresses e-mail.
+
+Une version de test tourne encore sur Vercel (`carsitting.vercel.app`) tant que la bascule n'est pas faite.
 
 ## À faire
 
