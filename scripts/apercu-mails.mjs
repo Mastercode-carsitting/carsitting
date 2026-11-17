@@ -29,7 +29,11 @@ const partenaireEn = {
   data: { 'Langue du visiteur': 'Anglais — répondre en anglais', subject: 'Devenir partenaire — EN — Grand Hotel Paris', Établissement: 'Grand Hotel Paris', Email: 'j.smith@grandhotel.com', Message: '<script>alert(1)</script> We would like to discuss a partnership.' },
 };
 
-const files = { 'equipe-devis': teamMail(devis), 'equipe-partenaire-en': teamMail(partenaireEn), 'visiteur-fr': visitorMail(devis), 'visiteur-en': visitorMail(partenaireEn) };
+const candidature = {
+  form_name: 'recrutement',
+  data: { subject: 'Candidature — Karim Benali', Prénom: 'Karim', Nom: 'Benali', Email: 'karim.benali@exemple.fr', Téléphone: '06 11 22 33 44', 'Ville de résidence': 'Saint-Denis', 'Permis B en cours de validité': 'Oui', 'Permis B depuis le': '12/05/2016', 'Conduite quotidienne': 'Oui, tous les jours', 'Types de véhicules conduits': 'Boîte automatique, Véhicules haut de gamme / sportifs', 'Déjà voiturier': 'Oui', 'Secteurs d’expérience': 'Hôtellerie de luxe, Événementiel', 'Expériences professionnelles': 'Voiturier pendant 3 ans dans un hôtel 5 étoiles.\nChauffeur privé le week-end.', 'Langues parlées': 'Français, Anglais', 'Statut professionnel': 'Micro-entrepreneur / indépendant', Disponibilités: 'En soirée, Week-ends', 'Consentement (conservation 2 ans)': 'Oui' },
+};
+const files = { 'equipe-devis': teamMail(devis), 'equipe-partenaire-en': teamMail(partenaireEn), 'visiteur-fr': visitorMail(devis), 'visiteur-en': visitorMail(partenaireEn), 'equipe-candidature': teamMail(candidature), 'visiteur-candidature': visitorMail(candidature) };
 for (const [name, m] of Object.entries(files)) {
   writeFileSync(join(out, `${name}.html`), m.html);
   console.log(name.padEnd(22), '| objet :', m.subject);

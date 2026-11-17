@@ -24,6 +24,7 @@ npm run preview   # prévisualise le build
 | `/nos-services` · `/en/services` | `src/views/Services.astro` | Prestations, modalités d'intervention, ce qui nous distingue, partenaires |
 | `/mentions-legales` · `/en/legal-notice` | `src/views/Legal.astro` | Mentions légales (éditeur, propriété intellectuelle, responsabilité, données personnelles, cookies) |
 | `/demander-un-devis` · `/en/request-a-quote` | `src/views/Quote.astro` | Parcours de devis (solution ponctuelle ou service régulier) |
+| `/recrutement` · `/en/recruitment` | `src/views/Recruit.astro` | Candidature voiturier (permis, expérience, disponibilités, consentement 2 ans) ; mails à `recrutement@` |
 
 ## Français / anglais
 
@@ -95,7 +96,7 @@ Deux formulaires (devis et partenaire) partagent `src/scripts/forms.ts` :
 
 **Envoi.** En production (Netlify), les formulaires passent par **Netlify Forms** : aucun service tiers, tout reste dans le compte Netlify de l'entreprise. Les demandes apparaissent dans Netlify > Forms (deux formulaires : `devis` et `partenaire`) ; pour les recevoir par e-mail : Netlify > Forms > Form notifications > Add notification > Email notification, avec l'adresse de réception.
 
-**Mails à la charte.** À chaque envoi, la fonction `netlify/functions/submission-created.mjs` envoie à l'équipe un mail HTML aux couleurs de la charte (la réponse part directement vers le visiteur) et un accusé de réception au visiteur, en français ou en anglais selon sa langue. Les modèles sont dans `netlify/functions/lib/mail-templates.mjs` ; `node scripts/apercu-mails.mjs <dossier>` génère des aperçus HTML pour les voir sans rien envoyer. L'envoi passe par le serveur d'envoi d'une boîte du domaine (LWS). Variables à définir dans Netlify (Environment variables, jamais dans le code) : `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, et éventuellement `MAIL_TO` (destinataire, par défaut `SMTP_USER`) et `MAIL_FROM_NAME`. Si l'envoi échoue, la demande reste visible dans Netlify > Forms.
+**Mails à la charte.** À chaque envoi, la fonction `netlify/functions/submission-created.mjs` envoie à l'équipe un mail HTML aux couleurs de la charte (la réponse part directement vers le visiteur) et un accusé de réception au visiteur, en français ou en anglais selon sa langue. Les modèles sont dans `netlify/functions/lib/mail-templates.mjs` ; `node scripts/apercu-mails.mjs <dossier>` génère des aperçus HTML pour les voir sans rien envoyer. L'envoi passe par le serveur d'envoi d'une boîte du domaine (LWS). Variables à définir dans Netlify (Environment variables, jamais dans le code) : `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, et éventuellement `MAIL_TO` (destinataire des devis et partenariats, par défaut `SMTP_USER`), `MAIL_TO_RECRUTEMENT` (candidatures, par défaut `recrutement@carsitting.fr`) et `MAIL_FROM_NAME`. Le CV n'est pas déposé sur le site : l'accusé de réception demande au candidat d'y répondre en joignant son CV. Si l'envoi échoue, la demande reste visible dans Netlify > Forms.
 
 En développement local (`npm run dev`), Netlify n'existe pas : le formulaire ouvre la messagerie du visiteur vers `contact@carsitting.fr`, juste pour tester l'affichage.
 

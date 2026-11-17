@@ -60,7 +60,7 @@ const wrap = (inner, preheader) => `<!doctype html>
 export function teamMail(payload) {
   const d = payload?.data || {};
   const english = isEnglish(payload);
-  const kind = payload?.form_name === 'partenaire' ? 'Devenir partenaire' : 'Demande de devis';
+  const kind = { partenaire: 'Devenir partenaire', recrutement: 'Candidature voiturier' }[payload?.form_name] || 'Demande de devis';
   const rows = fieldsOf(payload)
     .map(
       ([label, value]) => `<tr><td style="padding:14px 0;border-bottom:1px solid #EEE7D8;">
@@ -69,7 +69,7 @@ export function teamMail(payload) {
       </td></tr>`,
     )
     .join('');
-  const who = oneLine(d['Nom et prénom'] || d['Établissement'] || d['Email'] || '');
+  const who = oneLine(d['Nom et prénom'] || d['Établissement'] || [d['Prénom'], d['Nom']].filter(Boolean).join(' ') || d['Email'] || '');
   const inner = `<tr><td style="padding:34px 36px 10px;">
       <div style="font-family:${SANS};font-size:10px;letter-spacing:3px;text-transform:uppercase;color:${OR};">Nouvelle demande · carsitting.fr</div>
       <h1 style="margin:10px 0 0;font-family:${SERIF};font-weight:normal;font-size:30px;line-height:1.2;color:${NUIT};">${esc(kind)}</h1>
@@ -90,20 +90,25 @@ export function teamMail(payload) {
 export function visitorMail(payload) {
   const english = isEnglish(payload);
   const partner = payload?.form_name === 'partenaire';
+  const recruit = payload?.form_name === 'recrutement';
   const t = english
     ? {
-        subject: 'We have received your request — CarSitting',
-        label: partner ? 'Partnership' : 'Quote request',
+        subject: recruit ? 'We have received your application — CarSitting' : 'We have received your request — CarSitting',
+        label: recruit ? 'Application' : partner ? 'Partnership' : 'Quote request',
         title: 'Thank you.',
-        body: 'Your request has been received. We will reply within two working days, with a clear proposal and no obligation.',
+        body: recruit
+          ? 'Your application has been received. To complete it, simply reply to this email attaching your CV (PDF). We read every application carefully and will come back to you if your profile fits. Your details are kept for 2 years at most.'
+          : 'Your request has been received. We will reply within two working days, with a clear proposal and no obligation.',
         sign: 'The CarSitting team',
         lang: 'en',
       }
     : {
-        subject: 'Votre demande a bien été reçue — CarSitting',
-        label: partner ? 'Partenariat' : 'Demande de devis',
+        subject: recruit ? 'Votre candidature a bien été reçue — CarSitting' : 'Votre demande a bien été reçue — CarSitting',
+        label: recruit ? 'Candidature' : partner ? 'Partenariat' : 'Demande de devis',
         title: 'Merci.',
-        body: 'Votre demande a bien été reçue. Nous vous répondons sous quarante-huit heures ouvrées, avec une proposition précise et sans engagement.',
+        body: recruit
+          ? 'Votre candidature a bien été reçue. Pour la compléter, répondez simplement à ce mail en joignant votre CV (PDF). Nous lisons chaque candidature avec attention et revenons vers vous si votre profil correspond. Vos informations sont conservées 2 ans au maximum.'
+          : 'Votre demande a bien été reçue. Nous vous répondons sous quarante-huit heures ouvrées, avec une proposition précise et sans engagement.',
         sign: "L'équipe CarSitting",
         lang: 'fr',
       };

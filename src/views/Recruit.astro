@@ -1,0 +1,206 @@
+---
+// Recrutement / Join the team : formulaire de candidature voiturier. Textes en français et en anglais.
+// Les noms des champs (envoyés dans le mail) restent en français ; seuls les libellés affichés changent.
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Field from '../components/form/Field.astro';
+import Submit from '../components/form/Submit.astro';
+import { getLang, path, t } from '../i18n';
+
+const lang = getLang(Astro.url);
+const ui = t(lang);
+const en = lang === 'en';
+// Valeur envoyée (toujours en français) et libellé affiché selon la langue.
+const o = (fr: string, english: string) => ({ value: fr, label: en ? english : fr });
+const yn = [o('Oui', 'Yes'), o('Non', 'No')];
+
+const c = en
+  ? {
+      title: 'Recruitment — CarSitting',
+      description: 'Become a valet at CarSitting: apply to join our team in Paris and Île-de-France, serving hotels, high-end restaurants and private events.',
+      heroLabel: 'Recruitment',
+      heroTitle: 'Join CarSitting.',
+      heroQuote: 'Punctual, elegant, at ease behind the wheel, with a sense of service? Join our team of valets in Paris and Île-de-France.',
+      intro: 'Tell us about yourself. We read every application carefully and come back to you if your profile fits our assignments in luxury hotels, high-end restaurants and events.',
+      s1: '1. Your details', first: 'First name', last: 'Last name', email: 'Email address', emailPh: 'you@example.com', phone: 'Phone', phonePh: '06 00 00 00 00', city: 'City of residence', cityPh: 'Paris, Saint-Denis…',
+      s2: '2. Licence and driving experience', licence: 'Do you hold a valid category B (car) licence?', licenceDate: 'Since when do you hold it?', daily: 'Do you drive every day?',
+      dailyOpts: [o('Oui, tous les jours', 'Yes, every day'), o('Plusieurs fois par semaine', 'Several times a week'), o('Occasionnellement', 'Occasionally'), o('Très rarement', 'Very rarely')],
+      vehicles: 'Which types of vehicle are you used to driving?',
+      vehicleOpts: [o('Boîte automatique', 'Automatic'), o('Boîte manuelle', 'Manual'), o('SUV et véhicules de grande taille', 'SUVs and large vehicles'), o('Véhicules haut de gamme / sportifs', 'Premium / sports cars'), o('Véhicules électriques / hybrides', 'Electric / hybrid vehicles')],
+      luxury: 'Have you ever driven luxury vehicles?',
+      s3: '3. Professional experience', wasValet: 'Have you already worked as a valet?', sectors: 'Which sectors have you worked in?',
+      sectorOpts: [o('Hôtellerie de luxe', 'Luxury hotels'), o('Restauration haut de gamme', 'High-end restaurants'), o('Événementiel', 'Events'), o('Conciergerie / accueil', 'Concierge / reception'), o('Chauffeur privé / VTC', 'Private driver / ride-hailing'), o('Autre secteur', 'Other sector')],
+      experience: 'Describe your professional experience', experiencePh: 'Positions held, venues, assignments, length of experience…',
+      languages: 'Languages spoken', languageOpts: [o('Français', 'French'), o('Anglais', 'English'), o('Espagnol', 'Spanish'), o('Autres', 'Others')],
+      s4: '4. Status and availability', status: 'What is your professional status?',
+      statusOpts: [o('Micro-entrepreneur / indépendant', 'Self-employed'), o('Salarié', 'Employee'), o('Étudiant', 'Student'), o('Autre', 'Other')],
+      availability: 'What are your availabilities?',
+      availabilityOpts: [o('Semaine en journée', 'Weekdays, daytime'), o('En soirée', 'Evenings'), o('Week-ends', 'Weekends'), o('Missions ponctuelles', 'One-off assignments'), o('Temps plein', 'Full time')],
+      from: 'Available from', mobile: 'Can you travel across Paris and Île-de-France?', mobileOpts: [o('Oui', 'Yes'), o('Partiellement', 'Partly'), o('Non', 'No')],
+      s5: '5. Your application', why: 'Why would you like to join CarSitting?', whyPh: 'A few lines to introduce yourself…',
+      cv: 'Once sent, you will receive a confirmation email. Reply to it attaching your CV (PDF).',
+      consent: 'I agree that CARSITTING SAS processes the information I send for my application and keeps it for 2 years at most. See the', consentLink: 'legal notice',
+      consentError: 'Please accept so that we can process your application.', groupError: 'Please tick at least one box.',
+      submit: 'Send my application', success: 'Thank you, your application has been sent. Check your inbox: reply to our confirmation email with your CV attached.',
+      required: 'Fields marked with an asterisk (*) are required.',
+    }
+  : {
+      title: 'Recrutement — CarSitting',
+      description: 'Devenez voiturier chez CarSitting : candidatez pour rejoindre notre équipe à Paris et en Île-de-France, au service d’hôtels, de restaurants haut de gamme et d’événements privés.',
+      heroLabel: 'Recrutement',
+      heroTitle: 'Rejoignez CarSitting.',
+      heroQuote: 'Vous êtes ponctuel, élégant, à l’aise au volant et avez le sens du service ? Rejoignez notre équipe de voituriers à Paris et en Île-de-France.',
+      intro: 'Présentez-vous. Nous lisons chaque candidature avec attention et revenons vers vous si votre profil correspond à nos missions en hôtels de luxe, restaurants haut de gamme et événements.',
+      s1: '1. Vos coordonnées', first: 'Prénom', last: 'Nom', email: 'Adresse e-mail', emailPh: 'vous@exemple.fr', phone: 'Téléphone', phonePh: '06 00 00 00 00', city: 'Ville de résidence', cityPh: 'Paris, Saint-Denis…',
+      s2: '2. Permis et expérience de conduite', licence: 'Êtes-vous titulaire du permis B en cours de validité ?', licenceDate: 'Depuis quelle date avez-vous le permis B ?', daily: 'Conduisez-vous quotidiennement ?',
+      dailyOpts: [o('Oui, tous les jours', ''), o('Plusieurs fois par semaine', ''), o('Occasionnellement', ''), o('Très rarement', '')],
+      vehicles: 'Quels types de véhicules avez-vous l’habitude de conduire ?',
+      vehicleOpts: [o('Boîte automatique', ''), o('Boîte manuelle', ''), o('SUV et véhicules de grande taille', ''), o('Véhicules haut de gamme / sportifs', ''), o('Véhicules électriques / hybrides', '')],
+      luxury: 'Avez-vous déjà conduit des véhicules de luxe ?',
+      s3: '3. Expériences professionnelles', wasValet: 'Avez-vous déjà travaillé comme voiturier ?', sectors: 'Dans quels secteurs avez-vous travaillé ?',
+      sectorOpts: [o('Hôtellerie de luxe', ''), o('Restauration haut de gamme', ''), o('Événementiel', ''), o('Conciergerie / accueil', ''), o('Chauffeur privé / VTC', ''), o('Autre secteur', '')],
+      experience: 'Décrivez vos expériences professionnelles', experiencePh: 'Postes occupés, établissements, missions, durées des expériences…',
+      languages: 'Langues parlées', languageOpts: [o('Français', ''), o('Anglais', ''), o('Espagnol', ''), o('Autres', '')],
+      s4: '4. Statut et disponibilités', status: 'Quel est votre statut professionnel ?',
+      statusOpts: [o('Micro-entrepreneur / indépendant', ''), o('Salarié', ''), o('Étudiant', ''), o('Autre', '')],
+      availability: 'Quelles sont vos disponibilités ?',
+      availabilityOpts: [o('Semaine en journée', ''), o('En soirée', ''), o('Week-ends', ''), o('Missions ponctuelles', ''), o('Temps plein', '')],
+      from: 'À partir de quand êtes-vous disponible ?', mobile: 'Êtes-vous mobile sur Paris et l’Île-de-France ?', mobileOpts: [o('Oui', ''), o('Partiellement', ''), o('Non', '')],
+      s5: '5. Votre candidature', why: 'Pourquoi souhaitez-vous rejoindre CarSitting ?', whyPh: 'Quelques lignes pour vous présenter…',
+      cv: 'Une fois envoyée, vous recevrez un e-mail de confirmation. Répondez-y en joignant votre CV (PDF).',
+      consent: 'J’accepte que CARSITTING SAS traite les informations transmises dans le cadre de ma candidature et les conserve 2 ans au maximum. Voir les', consentLink: 'mentions légales',
+      consentError: 'Merci d’accepter pour que nous puissions traiter votre candidature.', groupError: 'Cochez au moins une case.',
+      submit: 'Envoyer ma candidature', success: 'Merci, votre candidature a bien été transmise. Consultez votre boîte mail : répondez à notre e-mail de confirmation en joignant votre CV.',
+      required: 'Les champs marqués d’un astérisque (*) sont obligatoires.',
+    };
+// En français, le libellé est la valeur : les options de `o(fr, '')` n'ont pas de traduction.
+const opts = (list: { value: string; label: string }[]) => list.map((x) => ({ value: x.value, label: en ? x.label : x.value }));
+
+// Groupe de cases à cocher : valeurs envoyées en français, regroupées en une seule ligne dans le mail.
+const groups = [
+  { name: 'Types de véhicules conduits', legend: c.vehicles, list: opts(c.vehicleOpts), required: false },
+  { name: 'Secteurs d’expérience', legend: c.sectors, list: opts(c.sectorOpts), required: false },
+  { name: 'Langues parlées', legend: c.languages, list: opts(c.languageOpts), required: false },
+  { name: 'Disponibilités', legend: c.availability, list: opts(c.availabilityOpts), required: true },
+];
+const group = (name: string) => groups.find((g) => g.name === name)!;
+const ynOpts = opts(yn);
+---
+<Base title={c.title} description={c.description}>
+  <Hero
+    size="tall"
+    slides={[{ src: '/images/paris-nuit.jpg', position: 'center 40%' }]}
+    label={c.heroLabel}
+    title={c.heroTitle}
+    quote={c.heroQuote}
+  />
+
+  <section class="s-ivoire px-5 py-12 sm:px-6 md:py-16">
+    <div class="mx-auto max-w-3xl">
+      <p class="mx-auto mb-12 max-w-xl text-center text-[17px] leading-relaxed text-encre/70">{c.intro}</p>
+      <form data-form name="recrutement" data-netlify="true" data-netlify-honeypot="_gotcha" data-subject="Candidature" data-success={c.success} class="form-light space-y-12" aria-describedby="recrutement-mentions">
+        <input type="hidden" name="form-name" value="recrutement" />
+
+        <fieldset class="space-y-6">
+          <legend class="f-section">{c.s1}</legend>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label={c.first} name="Prénom" autocomplete="given-name" required />
+            <Field label={c.last} name="Nom" autocomplete="family-name" required />
+          </div>
+          <Field label={c.email} name="Email" type="email" autocomplete="email" inputmode="email" placeholder={c.emailPh} required />
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label={c.phone} name="Téléphone" type="tel" autocomplete="tel" inputmode="tel" placeholder={c.phonePh} required />
+            <Field label={c.city} name="Ville de résidence" placeholder={c.cityPh} autocomplete="address-level2" required />
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="f-section">{c.s2}</legend>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label={c.licence} name="Permis B en cours de validité" type="select" options={ynOpts} required />
+            <Field label={c.licenceDate} name="Permis B depuis le" type="date" past required />
+          </div>
+          <Field label={c.daily} name="Conduite quotidienne" type="select" options={opts(c.dailyOpts)} required />
+          <fieldset data-group data-error={c.groupError} class="f-group">
+            <legend class="f-label">{c.vehicles}</legend>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {group('Types de véhicules conduits').list.map((x) => (
+                <label class="f-check"><input type="checkbox" name="Types de véhicules conduits" value={x.value} data-multi /><span>{x.label}</span></label>
+              ))}
+            </div>
+            <p class="f-error" aria-live="polite"></p>
+          </fieldset>
+          <Field label={c.luxury} name="Véhicules de luxe déjà conduits" type="select" options={ynOpts} />
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="f-section">{c.s3}</legend>
+          <Field label={c.wasValet} name="Déjà voiturier" type="select" options={ynOpts} required />
+          <fieldset data-group data-error={c.groupError} class="f-group">
+            <legend class="f-label">{c.sectors}</legend>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {group('Secteurs d’expérience').list.map((x) => (
+                <label class="f-check"><input type="checkbox" name="Secteurs d’expérience" value={x.value} data-multi /><span>{x.label}</span></label>
+              ))}
+            </div>
+            <p class="f-error" aria-live="polite"></p>
+          </fieldset>
+          <Field label={c.experience} name="Expériences professionnelles" type="textarea" placeholder={c.experiencePh} />
+          <fieldset data-group data-error={c.groupError} class="f-group">
+            <legend class="f-label">{c.languages}</legend>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {group('Langues parlées').list.map((x) => (
+                <label class="f-check"><input type="checkbox" name="Langues parlées" value={x.value} data-multi /><span>{x.label}</span></label>
+              ))}
+            </div>
+            <p class="f-error" aria-live="polite"></p>
+          </fieldset>
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="f-section">{c.s4}</legend>
+          <Field label={c.status} name="Statut professionnel" type="select" options={opts(c.statusOpts)} required />
+          <fieldset data-group data-required data-error={c.groupError} class="f-group">
+            <legend class="f-label">{c.availability} <span aria-hidden="true">*</span></legend>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {group('Disponibilités').list.map((x) => (
+                <label class="f-check"><input type="checkbox" name="Disponibilités" value={x.value} data-multi /><span>{x.label}</span></label>
+              ))}
+            </div>
+            <p class="f-error" aria-live="polite"></p>
+          </fieldset>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label={c.from} name="Disponible à partir du" type="date" />
+            <Field label={c.mobile} name="Mobile sur Paris et Île-de-France" type="select" options={opts(c.mobileOpts)} />
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="f-section">{c.s5}</legend>
+          <Field label={c.why} name="Motivation" type="textarea" placeholder={c.whyPh} />
+          <p class="text-sm leading-relaxed text-encre/70">{c.cv}</p>
+          <fieldset data-group data-required data-error={c.consentError} class="f-group">
+            <label class="f-check">
+              <input type="checkbox" name="Consentement (conservation 2 ans)" value="Oui" data-multi />
+              <span>{c.consent} <a href={path('legal', lang)} class="legal-link" target="_blank" rel="noopener">{c.consentLink}</a>. <span aria-hidden="true">*</span></span>
+            </label>
+            <p class="f-error" aria-live="polite"></p>
+          </fieldset>
+        </fieldset>
+
+        <div class="hidden" aria-hidden="true"><label>{ui.honeypot} <input name="_gotcha" tabindex="-1" autocomplete="off" /></label></div>
+
+        <div class="text-center">
+          <Submit label={c.submit} />
+          <p data-status role="status" class="f-status mx-auto mt-5 max-w-lg"></p>
+          <p id="recrutement-mentions" class="mt-4 text-sm text-encre/60">{c.required}</p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    import { initForms } from '../scripts/forms';
+    document.addEventListener('astro:page-load', initForms);
+  </script>
+</Base>
