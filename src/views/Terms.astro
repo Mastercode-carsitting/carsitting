@@ -19,7 +19,7 @@ type Section = {
 };
 
 const mail = '<a href="mailto:contact@carsitting.fr" class="legal-link">contact@carsitting.fr</a>';
-const phoneWrong = '<a href="tel:+33783737445" class="legal-link">07.83.73.74.45</a>';
+const phone1 = '<a href="tel:+33783767445" class="legal-link">07.83.76.74.45</a>'; // le PDF d'origine portait 07.83.73.74.45 (faute de frappe) : corrigé, à faire confirmer par le client
 const phone2 = '<a href="tel:+33783938318" class="legal-link">07.83.93.83.18</a>';
 const medMail = '<a href="mailto:contact@sasmediationsolution-conso.fr" class="legal-link [overflow-wrap:anywhere]">contact@sasmediationsolution-conso.fr</a>';
 const medUrl = '<a href="https://www.sasmediationsolution-conso.fr" target="_blank" rel="noopener noreferrer" class="legal-link [overflow-wrap:anywhere]">https://www.sasmediationsolution-conso.fr</a>';
@@ -151,7 +151,7 @@ const copy: Record<'fr' | 'en', {
           { type: 'h3', text: '8.1. Prestation régulière :' },
           { type: 'p', html: 'Chacune des parties pourra mettre un terme au contrat liant le Prestataire au Bénéficiaire en notifiant à l’autre partie sa décision de ne pas renouveler ledit contrat, par lettre recommandée en respectant un délai de préavis d’au moins trois mois entre la date anniversaire du contrat et la date de première présentation dudit recommandé.' },
           { type: 'h3', text: '8.2. Prestation ponctuelle :' },
-          { type: 'p', html: `Toute demande d’annulation d’une prestation par le Bénéficiaire doit être adressée au minimum 48 heures avant la date de la prestation soit par téléphone (${phoneWrong} / ${phone2}), soit par e-mail (${mail}).` },
+          { type: 'p', html: `Toute demande d’annulation d’une prestation par le Bénéficiaire doit être adressée au minimum 48 heures avant la date de la prestation soit par téléphone (${phone1} / ${phone2}), soit par e-mail (${mail}).` },
           { type: 'p', html: 'Le montant de l’acompte lui sera alors intégralement reversé. Dans le cas contraire, l’acompte sera conservé.' },
         ],
       },
@@ -335,7 +335,7 @@ const copy: Record<'fr' | 'en', {
           { type: 'h3', text: '8.1. Regular service:' },
           { type: 'p', html: 'Either party may terminate the contract binding the Service Provider and the Beneficiary by notifying the other party of its decision not to renew said contract, by registered letter, observing a notice period of at least three months between the contract anniversary date and the date of first presentation of said registered letter.' },
           { type: 'h3', text: '8.2. One-off service:' },
-          { type: 'p', html: `Any request by the Beneficiary to cancel a service must be sent at least 48 hours before the date of the service either by telephone (${phoneWrong} / ${phone2}) or by email (${mail}).` },
+          { type: 'p', html: `Any request by the Beneficiary to cancel a service must be sent at least 48 hours before the date of the service either by telephone (${phone1} / ${phone2}) or by email (${mail}).` },
           { type: 'p', html: 'The deposit amount will then be refunded in full. Otherwise, the deposit will be retained.' },
         ],
       },
