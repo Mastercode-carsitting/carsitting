@@ -93,11 +93,11 @@ Deux formulaires (devis et partenaire) partagent `src/scripts/forms.ts` :
 - parcours conditionnel sur le devis : seuls les champs du parcours choisi sont validés et envoyés ;
 - champ piège anti-spam.
 
-**Envoi.** En production (Netlify), les formulaires passent par **Netlify Forms** : aucun service tiers, tout reste dans le compte Netlify de l'entreprise. Réglage dans `netlify.toml` (`PUBLIC_FORM_BACKEND = "netlify"`). Les demandes apparaissent dans Netlify > Forms (deux formulaires : `devis` et `partenaire`) ; pour les recevoir par e-mail : Netlify > Forms > Form notifications > Add notification > Email notification, avec l'adresse de réception.
+**Envoi.** En production (Netlify), les formulaires passent par **Netlify Forms** : aucun service tiers, tout reste dans le compte Netlify de l'entreprise. Les demandes apparaissent dans Netlify > Forms (deux formulaires : `devis` et `partenaire`) ; pour les recevoir par e-mail : Netlify > Forms > Form notifications > Add notification > Email notification, avec l'adresse de réception.
 
 **Mails à la charte.** À chaque envoi, la fonction `netlify/functions/submission-created.mjs` envoie à l'équipe un mail HTML aux couleurs de la charte (la réponse part directement vers le visiteur) et un accusé de réception au visiteur, en français ou en anglais selon sa langue. Les modèles sont dans `netlify/functions/lib/mail-templates.mjs` ; `node scripts/apercu-mails.mjs <dossier>` génère des aperçus HTML pour les voir sans rien envoyer. L'envoi passe par le serveur d'envoi d'une boîte du domaine (LWS). Variables à définir dans Netlify (Environment variables, jamais dans le code) : `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, et éventuellement `MAIL_TO` (destinataire, par défaut `SMTP_USER`) et `MAIL_FROM_NAME`. Si l'envoi échoue, la demande reste visible dans Netlify > Forms.
 
-En développement local, sans la variable `PUBLIC_FORM_BACKEND`, le formulaire ouvre la messagerie du visiteur vers `contact@carsitting.fr` (simple repli). On peut aussi viser un service externe avec `PUBLIC_FORM_ENDPOINT` (Formspree…), envoi en JSON.
+En développement local (`npm run dev`), Netlify n'existe pas : le formulaire ouvre la messagerie du visiteur vers `contact@carsitting.fr`, juste pour tester l'affichage.
 
 ## Métadonnées et partage
 
@@ -113,7 +113,7 @@ Après une mise en ligne, forcer la mise à jour des aperçus déjà en cache av
 
 ## Déploiement (Netlify)
 
-Le site est statique. Sur Netlify : relier le dépôt GitHub (la configuration est dans `netlify.toml` : `npm run build`, dossier `dist`), puis définir `SITE_URL` (`https://carsitting.fr`) et, quand le service d'envoi sera choisi, `PUBLIC_FORM_ENDPOINT`. Le nom de domaine (carsitting.fr) est chez LWS : seuls les enregistrements A, AAAA et `www` de la zone DNS changent, avec les valeurs données par Netlify. **Ne jamais toucher aux enregistrements MX, TXT (SPF) et `mail`** : ils font fonctionner les adresses e-mail.
+Le site est statique. Sur Netlify : relier le dépôt GitHub (la configuration est dans `netlify.toml` : `npm run build`, dossier `dist`), puis définir `SITE_URL` (`https://carsitting.fr`) et les variables d'envoi des mails (voir « Mails à la charte »). Le nom de domaine (carsitting.fr) est chez LWS : seuls les enregistrements A, AAAA et `www` de la zone DNS changent, avec les valeurs données par Netlify. **Ne jamais toucher aux enregistrements MX, TXT (SPF) et `mail`** : ils font fonctionner les adresses e-mail.
 
 Une version de test tourne encore sur Vercel (`carsitting.vercel.app`) tant que la bascule n'est pas faite.
 
