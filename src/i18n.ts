@@ -12,6 +12,7 @@ export const routes = {
   quote: { fr: '/demander-un-devis', en: '/en/request-a-quote' },
   houses: { fr: '/#les-maisons', en: '/en/#les-maisons' },
   legal: { fr: '/mentions-legales', en: '/en/legal-notice' },
+  terms: { fr: '/cgv', en: '/en/terms-of-sale' },
 } as const;
 export type RouteKey = keyof typeof routes;
 
@@ -59,6 +60,7 @@ export const ui = {
     contact: 'Contact',
     follow: 'Suivre',
     legal: 'Mentions légales',
+    terms: 'Conditions générales de vente',
     rights: 'Service voiturier · Paris',
     scroll: 'Défiler',
     scrollLabel: 'Découvrir la suite de la page',
@@ -95,6 +97,7 @@ export const ui = {
     contact: 'Contact',
     follow: 'Follow',
     legal: 'Legal notice',
+    terms: 'Terms and conditions of sale',
     rights: 'Valet service · Paris',
     scroll: 'Scroll',
     scrollLabel: 'Discover the rest of the page',
