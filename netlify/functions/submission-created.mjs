@@ -8,6 +8,7 @@
 //   SMTP_USER   adresse de la boîte qui envoie (ex. une boîte dédiée site@carsitting.fr, créée chez LWS)
 //   SMTP_PASS   mot de passe de cette boîte
 //   MAIL_TO     adresse qui reçoit les demandes et qui reçoit les réponses des visiteurs (ex. contact@carsitting.fr)
+//   MAIL_TO_RECRUTEMENT  adresse qui reçoit les candidatures (par défaut : recrutement@carsitting.fr)
 //   MAIL_FROM_NAME  nom affiché (par défaut : CarSitting)
 import nodemailer from 'nodemailer';
 import { teamMail, visitorMail, isEmail, oneLine } from './lib/mail-templates.mjs';
@@ -19,9 +20,11 @@ export const handler = async (event) => {
   } catch {
     return { statusCode: 400, body: 'Corps invalide' };
   }
-  if (!payload || !['devis', 'partenaire'].includes(payload.form_name)) return { statusCode: 200, body: 'Formulaire ignoré' };
+  if (!payload || !['devis', 'partenaire', 'recrutement'].includes(payload.form_name)) return { statusCode: 200, body: 'Formulaire ignoré' };
 
-  const { SMTP_HOST, SMTP_PORT = '465', SMTP_USER, SMTP_PASS, MAIL_TO, MAIL_FROM_NAME = 'CarSitting' } = process.env;
+  const { SMTP_HOST, SMTP_PORT = '465', SMTP_USER, SMTP_PASS, MAIL_TO: MAIL_TO_DEFAULT, MAIL_TO_RECRUTEMENT = 'recrutement@carsitting.fr', MAIL_FROM_NAME = 'CarSitting' } = process.env;
+  // Les candidatures vont à l'adresse dédiée au recrutement ; les devis et partenariats à l'adresse de réception habituelle.
+  const MAIL_TO = payload.form_name === 'recrutement' ? MAIL_TO_RECRUTEMENT : MAIL_TO_DEFAULT;
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     console.error('Variables SMTP manquantes : aucun mail envoyé (la demande reste dans Netlify > Forms).');
     return { statusCode: 200, body: 'SMTP non configuré' };

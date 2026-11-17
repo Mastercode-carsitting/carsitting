@@ -11,7 +11,7 @@ const MSG = {
   fr: {
     required: 'Ce champ est requis.', choose: 'Veuillez choisir une option.',
     email: 'Indiquez une adresse email valide (ex. vous@exemple.fr).', tel: 'Indiquez un numéro de téléphone valide (10 chiffres minimum).',
-    dateMin: (d: string) => `Choisissez une date à partir du ${d}.`, min: (n: string) => `La valeur doit être au moins ${n}.`,
+    dateMin: (d: string) => `Choisissez une date à partir du ${d}.`, dateMax: (d: string) => `Choisissez une date jusqu'au ${d}.`, min: (n: string) => `La valeur doit être au moins ${n}.`,
     max: (n: string) => `La valeur doit être au plus ${n}.`, integer: 'Indiquez un nombre entier.',
     pending: 'Envoi en cours…', sent: 'Demande transmise',
     fix: (n: number) => `Merci de compléter ${n > 1 ? `les ${n} champs signalés` : 'le champ signalé'}.`,
@@ -22,7 +22,7 @@ const MSG = {
   en: {
     required: 'This field is required.', choose: 'Please choose an option.',
     email: 'Please enter a valid email address (e.g. you@example.com).', tel: 'Please enter a valid phone number (at least 10 digits).',
-    dateMin: (d: string) => `Please choose a date from ${d}.`, min: (n: string) => `The value must be at least ${n}.`,
+    dateMin: (d: string) => `Please choose a date from ${d}.`, dateMax: (d: string) => `Please choose a date up to ${d}.`, min: (n: string) => `The value must be at least ${n}.`,
     max: (n: string) => `The value must be at most ${n}.`, integer: 'Please enter a whole number.',
     pending: 'Sending…', sent: 'Request sent',
     fix: (n: number) => `Please complete ${n > 1 ? `the ${n} highlighted fields` : 'the highlighted field'}.`,
@@ -62,6 +62,7 @@ function messageFor(el: Control): string {
   if (v.typeMismatch && el.type === 'email') return m.email;
   if (v.customError && el.type === 'tel') return m.tel;
   if (v.rangeUnderflow && el.type === 'date') return m.dateMin(shownDate((el as HTMLInputElement).min));
+  if (v.rangeOverflow && el.type === 'date') return m.dateMax(shownDate((el as HTMLInputElement).max));
   if (v.rangeUnderflow) return m.min((el as HTMLInputElement).min);
   if (v.rangeOverflow) return m.max((el as HTMLInputElement).max);
   if (v.stepMismatch || v.badInput) return m.integer;
@@ -112,13 +113,20 @@ function initParcours(form: HTMLFormElement) {
 // Champs actifs, dans l'ordre du formulaire ; ceux d'un fieldset désactivé (parcours non choisi) sont exclus.
 function payload(form: HTMLFormElement) {
   const out: Record<string, string> = {};
+  const multi: Record<string, string[]> = {};
   for (const el of [...form.elements] as Control[]) {
     if (!el.name || el.name === '_gotcha' || el.disabled || el.closest('fieldset:disabled')) continue;
+    // Groupe de cases à cocher : les valeurs cochées sont regroupées sur une seule ligne.
+    if (el instanceof HTMLInputElement && el.type === 'checkbox' && el.hasAttribute('data-multi')) {
+      if (el.checked) (multi[el.name] ||= []).push(el.value);
+      continue;
+    }
     if (el instanceof HTMLInputElement && el.type === 'radio' && !el.checked) continue;
     let v = el instanceof HTMLInputElement && el.type === 'checkbox' ? (el.checked ? 'Oui' : 'Non') : el.value.trim();
     if (el.type === 'date') v = frDate(v);
     if (v) out[el.name] = v;
   }
+  for (const [name, values] of Object.entries(multi)) out[name] = values.join(', ');
   return out;
 }
 
@@ -135,12 +143,23 @@ function setState(form: HTMLFormElement, state: 'idle' | 'pending' | 'success' |
   if (status) status.textContent = message;
 }
 
+// Groupes de cases à cocher obligatoires (disponibilités, consentement) : au moins une case cochée.
+function invalidGroups(form: HTMLFormElement) {
+  return [...form.querySelectorAll<HTMLElement>('fieldset[data-group]')].filter((g) => {
+    const missing = g.hasAttribute('data-required') && !g.querySelector<HTMLInputElement>('input:checked');
+    const err = g.querySelector<HTMLElement>('.f-error');
+    if (err) err.textContent = missing ? g.dataset.error || msg().required : '';
+    return missing;
+  });
+}
+
 async function submit(form: HTMLFormElement) {
   const fields = controls(form);
   const invalid = fields.filter((el) => showError(el));
-  if (invalid.length) {
-    invalid[0].focus({ preventScroll: false });
-    setState(form, 'error', msg().fix(invalid.length));
+  const badGroups = invalidGroups(form);
+  if (invalid.length || badGroups.length) {
+    (invalid[0] ?? badGroups[0].querySelector<HTMLInputElement>('input'))?.focus({ preventScroll: false });
+    setState(form, 'error', msg().fix(invalid.length + badGroups.length));
     return;
   }
   // Pot de miel anti-spam : un robot remplit ce champ invisible.
@@ -153,7 +172,8 @@ async function submit(form: HTMLFormElement) {
   // Demande envoyée depuis la version anglaise : on le signale pour répondre dans la bonne langue.
   const english = document.documentElement.lang === 'en';
   if (english) data['Langue du visiteur'] = 'Anglais — répondre en anglais';
-  const subject = [form.dataset.subject, english && 'EN', data['Parcours'], data['Nom et prénom'] || data['Établissement']].filter(Boolean).join(' — ');
+  const who = data['Nom et prénom'] || data['Établissement'] || [data['Prénom'], data['Nom']].filter(Boolean).join(' ');
+  const subject = [form.dataset.subject, english && 'EN', data['Parcours'], who].filter(Boolean).join(' — ');
   setState(form, 'pending');
 
   if (!import.meta.env.DEV) {
@@ -162,7 +182,7 @@ async function submit(form: HTMLFormElement) {
       const body = new URLSearchParams({ 'form-name': form.getAttribute('name') || '', subject, ...data });
       const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
       if (!res.ok) throw new Error(String(res.status));
-      setState(form, 'success', msg().thanksLong);
+      setState(form, 'success', form.dataset.success || msg().thanksLong);
       form.reset();
       form.querySelectorAll<HTMLInputElement>('input[name="Parcours"]')[0]?.dispatchEvent(new Event('change'));
     } catch {
@@ -185,7 +205,7 @@ export function initForms() {
 
     // Pas de date passée pour un événement.
     const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    form.querySelectorAll<HTMLInputElement>('input[type="date"]').forEach((d) => (d.min = today));
+    form.querySelectorAll<HTMLInputElement>('input[type="date"]').forEach((d) => (d.hasAttribute('data-past') ? (d.max = today) : (d.min = today)));
 
     initParcours(form);
 

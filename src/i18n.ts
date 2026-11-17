@@ -13,6 +13,7 @@ export const routes = {
   houses: { fr: '/#les-maisons', en: '/en/#les-maisons' },
   legal: { fr: '/mentions-legales', en: '/en/legal-notice' },
   terms: { fr: '/cgv', en: '/en/terms-of-sale' },
+  recruit: { fr: '/recrutement', en: '/en/recruitment' },
 } as const;
 export type RouteKey = keyof typeof routes;
 
@@ -61,6 +62,7 @@ export const ui = {
     follow: 'Suivre',
     legal: 'Mentions légales',
     terms: 'Conditions générales de vente',
+    recruit: 'Rejoindre l’équipe',
     rights: 'Service voiturier · Paris',
     scroll: 'Défiler',
     scrollLabel: 'Découvrir la suite de la page',
@@ -98,6 +100,7 @@ export const ui = {
     follow: 'Follow',
     legal: 'Legal notice',
     terms: 'Terms and conditions of sale',
+    recruit: 'Join the team',
     rights: 'Valet service · Paris',
     scroll: 'Scroll',
     scrollLabel: 'Discover the rest of the page',

@@ -15,11 +15,13 @@ interface Props {
   max?: number | string;
   pattern?: string;
   inputmode?: 'numeric' | 'tel' | 'email' | 'text';
+  /** Date passée attendue (ex. date d'obtention du permis) : pas de minimum « aujourd'hui », maximum aujourd'hui. */
+  past?: boolean;
   class?: string;
 }
 import { getLang, t } from '../../i18n';
 const ui = t(getLang(Astro.url));
-const { label, name, type = 'text', required = false, placeholder, options = [], rows = 4, autocomplete, min, max, pattern, inputmode, class: cls = '' } = Astro.props;
+const { label, name, type = 'text', required = false, placeholder, options = [], rows = 4, autocomplete, min, max, pattern, inputmode, past = false, class: cls = '' } = Astro.props;
 const id = 'f-' + name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const errId = `${id}-err`;
 const common = { id, name, required, 'aria-describedby': errId, autocomplete };
@@ -34,7 +36,7 @@ const common = { id, name, required, 'aria-describedby': errId, autocomplete };
   ) : type === 'textarea' ? (
     <textarea class="f-input" rows={rows} placeholder={placeholder} data-lenis-prevent {...common}></textarea>
   ) : (
-    <input class="f-input" type={type} placeholder={placeholder} min={min} max={max} step={type === 'number' ? 1 : undefined} pattern={pattern} inputmode={inputmode} {...common} />
+    <input class="f-input" type={type} placeholder={placeholder} min={min} max={max} step={type === 'number' ? 1 : undefined} pattern={pattern} inputmode={inputmode} data-past={past ? '' : undefined} {...common} />
   )}
   <p id={errId} class="f-error" aria-live="polite"></p>
 </div>
