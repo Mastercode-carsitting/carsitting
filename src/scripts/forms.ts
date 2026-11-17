@@ -1,7 +1,8 @@
 // Formulaires CarSitting : parcours conditionnel, validation en français, envoi.
 //
-// Envoi : Netlify Forms (aucun service tiers). Les demandes sont enregistrées dans Netlify > Forms, puis la fonction
-// netlify/functions/submission-created.mjs envoie les mails à la charte (équipe et accusé de réception).
+// Envoi : Netlify Forms (aucun service tiers) pour les devis et partenariats : la demande est enregistrée dans Netlify > Forms,
+// puis netlify/functions/submission-created.mjs envoie les mails à la charte (équipe et accusé de réception).
+// Le formulaire de recrutement (data-endpoint) envoie, lui, directement à netlify/functions/candidature.mjs avec le CV, sans rien stocker.
 // En développement local (npm run dev), Netlify n'existe pas : le formulaire ouvre alors la messagerie (mailto) pour tester.
 
 const CONTACT = 'contact@carsitting.fr';
@@ -11,7 +12,7 @@ const MSG = {
   fr: {
     required: 'Ce champ est requis.', choose: 'Veuillez choisir une option.',
     email: 'Indiquez une adresse email valide (ex. vous@exemple.fr).', tel: 'Indiquez un numéro de téléphone valide (10 chiffres minimum).',
-    fileSize: 'Fichier trop lourd (5 Mo maximum).', fileType: 'Format accepté : PDF, DOC ou DOCX.',
+    fileSize: 'Fichier trop lourd (4 Mo maximum).', fileType: 'Format accepté : PDF, DOC ou DOCX.',
     dateMin: (d: string) => `Choisissez une date à partir du ${d}.`, dateMax: (d: string) => `Choisissez une date jusqu'au ${d}.`, min: (n: string) => `La valeur doit être au moins ${n}.`,
     max: (n: string) => `La valeur doit être au plus ${n}.`, integer: 'Indiquez un nombre entier.',
     pending: 'Envoi en cours…', sent: 'Demande transmise',
@@ -23,7 +24,7 @@ const MSG = {
   en: {
     required: 'This field is required.', choose: 'Please choose an option.',
     email: 'Please enter a valid email address (e.g. you@example.com).', tel: 'Please enter a valid phone number (at least 10 digits).',
-    fileSize: 'File too large (5 MB maximum).', fileType: 'Accepted formats: PDF, DOC or DOCX.',
+    fileSize: 'File too large (4 MB maximum).', fileType: 'Accepted formats: PDF, DOC or DOCX.',
     dateMin: (d: string) => `Please choose a date from ${d}.`, dateMax: (d: string) => `Please choose a date up to ${d}.`, min: (n: string) => `The value must be at least ${n}.`,
     max: (n: string) => `The value must be at most ${n}.`, integer: 'Please enter a whole number.',
     pending: 'Sending…', sent: 'Request sent',
@@ -45,8 +46,8 @@ function checkTel(el: Control) {
   el.setCustomValidity(v && (/[^0-9+ .()-]/.test(v) || digits < 10 || digits > 15) ? 'tel' : '');
 }
 
-// CV : PDF, DOC ou DOCX, 5 Mo maximum.
-const MAX_FILE = 5 * 1024 * 1024;
+// CV : PDF, DOC ou DOCX, 4 Mo maximum (limite des fonctions Netlify).
+const MAX_FILE = 4 * 1024 * 1024;
 function checkFile(el: Control) {
   if (!(el instanceof HTMLInputElement) || el.type !== 'file') return;
   const f = el.files?.[0];
@@ -192,15 +193,14 @@ async function submit(form: HTMLFormElement) {
   if (!import.meta.env.DEV) {
     try {
       // Envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet des mails.
-      const files = [...form.querySelectorAll<HTMLInputElement>('input[type="file"]')].filter((i) => i.files?.length);
       const fields = { 'form-name': form.getAttribute('name') || '', subject, ...data };
       let res: Response;
-      if (files.length) {
-        // Avec un fichier (CV) : envoi « multipart », sans en-tête Content-Type (le navigateur le fixe).
+      if (form.dataset.endpoint) {
+        // Candidature : envoi direct à la fonction, avec le CV (multipart, sans en-tête Content-Type : le navigateur le fixe).
         const body = new FormData();
         Object.entries(fields).forEach(([k, v]) => body.append(k, v));
-        files.forEach((i) => body.append(i.name, i.files![0]));
-        res = await fetch('/', { method: 'POST', body });
+        form.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((i) => i.files?.[0] && body.append(i.name, i.files[0]));
+        res = await fetch(form.dataset.endpoint, { method: 'POST', body });
       } else {
         res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(fields).toString() });
       }

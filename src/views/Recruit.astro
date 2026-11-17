@@ -38,7 +38,7 @@ const c = en
       availabilityOpts: [o('Semaine en journée', 'Weekdays, daytime'), o('En soirée', 'Evenings'), o('Week-ends', 'Weekends'), o('Missions ponctuelles', 'One-off assignments'), o('Temps plein', 'Full time')],
       from: 'Available from', mobile: 'Can you travel across Paris and Île-de-France?', mobileOpts: [o('Oui', 'Yes'), o('Partiellement', 'Partly'), o('Non', 'No')],
       s5: '5. Your application', why: 'Why would you like to join CarSitting?', whyPh: 'A few lines to introduce yourself…',
-      cvLabel: 'Your CV', cvHint: 'PDF, DOC or DOCX file, 5 MB maximum.',
+      cvLabel: 'Your CV', cvHint: 'PDF, DOC or DOCX file, 4 MB maximum.',
       consent: 'I agree that CARSITTING SAS processes the information I send for my application and keeps it for 2 years at most. See the', consentLink: 'legal notice',
       consentError: 'Please accept so that we can process your application.', groupError: 'Please tick at least one box.',
       submit: 'Send my application', success: 'Thank you, your application and CV have been sent. You will receive a confirmation email.',
@@ -67,7 +67,7 @@ const c = en
       availabilityOpts: [o('Semaine en journée', ''), o('En soirée', ''), o('Week-ends', ''), o('Missions ponctuelles', ''), o('Temps plein', '')],
       from: 'À partir de quand êtes-vous disponible ?', mobile: 'Êtes-vous mobile sur Paris et l’Île-de-France ?', mobileOpts: [o('Oui', ''), o('Partiellement', ''), o('Non', '')],
       s5: '5. Votre candidature', why: 'Pourquoi souhaitez-vous rejoindre CarSitting ?', whyPh: 'Quelques lignes pour vous présenter…',
-      cvLabel: 'Votre CV', cvHint: 'Fichier PDF, DOC ou DOCX, 5 Mo maximum.',
+      cvLabel: 'Votre CV', cvHint: 'Fichier PDF, DOC ou DOCX, 4 Mo maximum.',
       consent: 'J’accepte que CARSITTING SAS traite les informations transmises dans le cadre de ma candidature et les conserve 2 ans au maximum. Voir les', consentLink: 'mentions légales',
       consentError: 'Merci d’accepter pour que nous puissions traiter votre candidature.', groupError: 'Cochez au moins une case.',
       submit: 'Envoyer ma candidature', success: 'Merci, votre candidature et votre CV ont bien été transmis. Vous allez recevoir un e-mail de confirmation.',
@@ -98,8 +98,7 @@ const ynOpts = opts(yn);
   <section class="s-ivoire px-5 py-12 sm:px-6 md:py-16">
     <div class="mx-auto max-w-3xl">
       <p class="mx-auto mb-12 max-w-xl text-center text-[17px] leading-relaxed text-encre/70">{c.intro}</p>
-      <form data-form name="recrutement" enctype="multipart/form-data" data-netlify="true" data-netlify-honeypot="_gotcha" data-subject="Candidature" data-success={c.success} class="form-light space-y-12" aria-describedby="recrutement-mentions">
-        <input type="hidden" name="form-name" value="recrutement" />
+      <form data-form name="recrutement" method="post" action="/.netlify/functions/candidature" enctype="multipart/form-data" data-endpoint="/.netlify/functions/candidature" data-subject="Candidature" data-success={c.success} class="form-light space-y-12" aria-describedby="recrutement-mentions">
 
         <fieldset class="space-y-6">
           <legend class="f-section">{c.s1}</legend>

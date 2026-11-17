@@ -1,7 +1,8 @@
-// Test de la fonction d'envoi des mails avec de FAUX serveurs (aucun mail réel, aucun appel à Netlify).
+// Test des fonctions d'envoi des mails avec de FAUX serveurs (aucun mail réel, aucun appel à Netlify).
 // Usage : node scripts/test-fonction-mails.mjs
-import nodemailer from 'nodemailer';
-import { makeHandler, addresses, filesOf } from '../netlify/functions/submission-created.mjs';
+import { makeHandler as devisHandler } from '../netlify/functions/submission-created.mjs';
+import { makeHandler as candidatureHandler, parseMultipart, MAX_CV } from '../netlify/functions/candidature.mjs';
+import { addresses } from '../netlify/functions/lib/mailer.mjs';
 
 let echecs = 0;
 const ok = (cond, msg) => { console.log((cond ? 'OK     ' : 'ÉCHEC  ') + msg); if (!cond) echecs++; };
@@ -9,71 +10,100 @@ const ok = (cond, msg) => { console.log((cond ? 'OK     ' : 'ÉCHEC  ') + msg); 
 // Faux transport : garde les messages au lieu de les envoyer.
 const envoyes = [];
 const createTransport = () => ({ sendMail: async (m) => { envoyes.push(m); return {}; } });
-// Faux réseau : télécharge un « PDF » et enregistre les suppressions.
-const appels = [];
-const faussePage = (reponses) => async (url, opts = {}) => { appels.push({ url, method: opts.method || 'GET', auth: opts.headers?.Authorization }); const r = reponses(url, opts); return r; };
-const pdf = Buffer.from('%PDF-1.4 faux cv');
-const reseauOk = faussePage((url, o) => o.method === 'DELETE' ? { ok: true, status: 204 } : { ok: true, status: 200, arrayBuffer: async () => pdf });
+const env = { SMTP_HOST: 'smtp.test', SMTP_USER: 'hostmaster@carsitting.fr', SMTP_PASS: 'x', MAIL_TO: 'contact@carsitting.fr, autre@carsitting.fr', MAIL_FROM: 'contact@carsitting.fr', MAIL_FROM_RECRUTEMENT: 'recrutement@carsitting.fr' };
 
-const env = { SMTP_HOST: 'smtp.test', SMTP_USER: 'hostmaster@carsitting.fr', SMTP_PASS: 'x', MAIL_TO: 'contact@carsitting.fr, autre@carsitting.fr', MAIL_FROM: 'contact@carsitting.fr', MAIL_FROM_RECRUTEMENT: 'recrutement@carsitting.fr', NETLIFY_ACCESS_TOKEN: 'jeton-test' };
-const candidature = (extra = {}) => ({ body: JSON.stringify({ payload: { id: 'sub123', form_name: 'recrutement', data: { subject: 'Candidature — Karim Benali', Prénom: 'Karim', Nom: 'Benali', Email: 'karim@exemple.fr', CV: { url: 'https://api.netlify.com/f/cv.pdf', filename: 'CV Karim.pdf', size: 1200, type: 'application/pdf' }, ...extra } } }) });
+// Construit un corps « multipart/form-data » comme le fait le navigateur (noms accentués en UTF-8).
+function multipart(fields, file) {
+  const boundary = '----CarSittingTest' + Math.random().toString(16).slice(2);
+  const parts = [];
+  for (const [k, v] of Object.entries(fields)) parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`, 'utf8'));
+  if (file) parts.push(Buffer.concat([Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${file.field || 'CV'}"; filename="${file.filename}"\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`, 'utf8'), file.content, Buffer.from('\r\n')]));
+  parts.push(Buffer.from(`--${boundary}--\r\n`));
+  return { httpMethod: 'POST', headers: { 'content-type': `multipart/form-data; boundary=${boundary}` }, body: Buffer.concat(parts).toString('base64'), isBase64Encoded: true };
+}
+const pdf = Buffer.concat([Buffer.from('%PDF-1.4\n'), Buffer.from('faux cv de test')]);
+const champs = (extra = {}) => ({
+  subject: 'Candidature — Karim Benali', Prénom: 'Karim', Nom: 'Benali', Email: 'karim@exemple.fr', Téléphone: '06 11 22 33 44', 'Ville de résidence': 'Saint-Denis',
+  'Permis B en cours de validité': 'Oui', 'Permis B depuis le': '12/05/2016', 'Conduite quotidienne': 'Oui, tous les jours', 'Déjà voiturier': 'Oui', 'Statut professionnel': 'Salarié',
+  Disponibilités: 'En soirée, Week-ends', 'Consentement (conservation 2 ans)': 'Oui', ...extra,
+});
+const cv = (extra = {}) => ({ field: 'CV', filename: 'CV Karim Bénali.pdf', type: 'application/pdf', content: pdf, ...extra });
+const lancer = (event, e = env, t = createTransport) => candidatureHandler({ env: e, createTransport: t })(event);
 
-console.log('addresses :', JSON.stringify(addresses('a@x.fr, b@y.fr; pas-une-adresse')), '| fichiers :', filesOf(JSON.parse(candidature().body).payload.data).length);
+console.log('addresses :', JSON.stringify(addresses('a@x.fr, b@y.fr; pas-une-adresse')), '| taille max CV :', MAX_CV / 1024 / 1024, 'Mo\n');
 
-// 1) candidature complète : mail avec CV, accusé, suppression
+// 1) candidature complète
 {
-  envoyes.length = 0; appels.length = 0;
-  const r = await makeHandler({ createTransport, fetch: reseauOk, env })(candidature());
-  ok(r.statusCode === 200, 'candidature : réponse 200');
+  envoyes.length = 0;
+  const r = await lancer(multipart(champs(), cv()));
+  ok(r.statusCode === 200 && JSON.parse(r.body).ok, 'candidature : réponse 200 { ok: true }');
   ok(envoyes.length === 2, 'candidature : 2 mails (équipe + accusé)');
   const [equipe, accuse] = envoyes;
   ok(equipe.to.join() === 'recrutement@carsitting.fr', 'candidature : destinataire = recrutement@ par défaut');
-  ok(equipe.attachments.length === 1 && equipe.attachments[0].content.equals(pdf), 'candidature : le CV est joint (contenu identique)');
-  ok(equipe.attachments[0].filename === 'CV Karim.pdf', 'candidature : nom du fichier conservé');
+  ok(equipe.attachments?.length === 1 && equipe.attachments[0].content.equals(pdf), 'candidature : le CV est joint (contenu identique)');
+  ok(equipe.attachments[0].filename === 'CV Karim Bénali.pdf', 'candidature : nom du fichier avec accents conservé');
   ok(/recrutement@carsitting\.fr/.test(equipe.from) && equipe.envelope.from === 'hostmaster@carsitting.fr', 'candidature : expéditeur affiché recrutement@, envoi par hostmaster@');
   ok(equipe.replyTo === 'karim@exemple.fr', 'candidature : « répondre » vers le candidat');
-  ok(/CV joint/.test(equipe.html) && !/object Object/.test(equipe.html), 'candidature : le mail annonce le CV joint, sans champ brut');
-  ok(accuse.to === 'karim@exemple.fr' && /recrutement@carsitting\.fr/.test(accuse.replyTo), 'accusé : envoyé au candidat, réponses vers recrutement@');
-  ok(!/répondez/i.test(accuse.html), 'accusé : ne demande plus d\'envoyer le CV par mail');
-  const suppr = appels.find((a) => a.method === 'DELETE');
-  ok(suppr && suppr.url.endsWith('/submissions/sub123') && suppr.auth === 'Bearer jeton-test', 'candidature : supprimée de Netlify après envoi (avec le jeton)');
-  ok(appels.find((a) => a.method === 'GET')?.auth === 'Bearer jeton-test', 'CV : téléchargé avec le jeton');
+  ok(/Karim/.test(equipe.html) && /Saint-Denis/.test(equipe.html) && /CV joint/.test(equipe.html), 'candidature : champs accentués lus (Prénom, Ville…) et CV annoncé');
+  ok(equipe.subject === 'Candidature — Karim Benali', 'candidature : objet du mail');
+  ok(accuse.to === 'karim@exemple.fr' && /recrutement@carsitting\.fr/.test(accuse.replyTo) && !/répondez/i.test(accuse.html), 'accusé : envoyé au candidat, sans demande de CV');
 }
-// 2) téléchargement du CV impossible : mail envoyé avec avertissement, RIEN supprimé
-{
-  envoyes.length = 0; appels.length = 0;
-  const reseauKo = faussePage((u, o) => o.method === 'DELETE' ? { ok: true, status: 204 } : { ok: false, status: 403 });
-  await makeHandler({ createTransport, fetch: reseauKo, env })(candidature());
-  ok(envoyes[0]?.attachments.length === 0 && /pas pu être joint/.test(envoyes[0].html), 'CV introuvable : mail envoyé avec avertissement');
-  ok(!appels.some((a) => a.method === 'DELETE'), 'CV introuvable : candidature NON supprimée');
+// 2) refus : fichier invalide
+for (const [nom, fichier] of [
+  ['sans CV', null],
+  ['mauvaise extension (.png)', cv({ filename: 'photo.png', type: 'image/png' })],
+  ['faux PDF (exécutable renommé)', cv({ filename: 'cv.pdf', content: Buffer.from('MZ\x90\x00programme') })],
+  ['CV trop lourd', cv({ content: Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(MAX_CV + 10)]) })],
+  ['fichier vide', cv({ content: Buffer.alloc(0) })],
+]) {
+  envoyes.length = 0;
+  const r = await lancer(multipart(champs(), fichier));
+  ok(r.statusCode === 400 && envoyes.length === 0, `refus : ${nom} -> 400, aucun mail`);
 }
-// 3) pas de jeton : mail envoyé, rien supprimé
-{
-  envoyes.length = 0; appels.length = 0;
-  const { NETLIFY_ACCESS_TOKEN, ...sansJeton } = env;
-  await makeHandler({ createTransport, fetch: reseauOk, env: sansJeton })(candidature());
-  ok(envoyes.length === 2 && !appels.some((a) => a.method === 'DELETE'), 'sans jeton : mails envoyés, aucune suppression');
-}
-// 4) envoi du mail en échec : rien supprimé, réponse 500
-{
-  envoyes.length = 0; appels.length = 0;
-  const transportKo = () => ({ sendMail: async () => { throw new Error('SMTP refusé'); } });
-  const r = await makeHandler({ createTransport: transportKo, fetch: reseauOk, env })(candidature());
-  ok(r.statusCode === 500 && !appels.some((a) => a.method === 'DELETE'), 'SMTP en échec : réponse 500, candidature NON supprimée');
-}
-// 5) devis : pas de suppression, destinataires multiples, expéditeur contact@
-{
-  envoyes.length = 0; appels.length = 0;
-  await makeHandler({ createTransport, fetch: reseauOk, env })({ body: JSON.stringify({ payload: { id: 'sub9', form_name: 'devis', data: { Email: 'client@exemple.fr', 'Nom et prénom': 'Camille Martin' } } }) });
-  ok(envoyes[0].to.join() === 'contact@carsitting.fr,autre@carsitting.fr', 'devis : deux destinataires');
-  ok(/contact@carsitting\.fr/.test(envoyes[0].from), 'devis : expéditeur affiché contact@');
-  ok(!appels.some((a) => a.method === 'DELETE'), 'devis : jamais supprimé de Netlify');
-}
-// 6) contenu malveillant : échappé
+// 3) refus : champs
 {
   envoyes.length = 0;
-  await makeHandler({ createTransport, fetch: reseauOk, env })(candidature({ Message: '<script>alert(1)</script>' }));
-  ok(!/<script>/.test(envoyes[0].html), 'sécurité : le HTML saisi par le candidat est neutralisé');
+  const { Disponibilités, ...sans } = champs();
+  let r = await lancer(multipart(sans, cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'refus : champ obligatoire manquant -> 400');
+  r = await lancer(multipart(champs({ 'Consentement (conservation 2 ans)': '' }), cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'refus : consentement absent -> 400');
+  r = await lancer(multipart(champs({ Email: 'pas-un-mail' }), cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'refus : adresse e-mail invalide -> 400');
+}
+// 4) piège anti-spam : réponse « ok » mais rien d'envoyé
+{
+  envoyes.length = 0;
+  const r = await lancer(multipart(champs({ _gotcha: 'je suis un robot' }), cv()));
+  ok(r.statusCode === 200 && envoyes.length === 0, 'anti-spam : champ piège rempli -> aucun mail');
+}
+// 5) SMTP absent ou en échec
+{
+  envoyes.length = 0;
+  const { SMTP_PASS, ...sansMdp } = env;
+  let r = await lancer(multipart(champs(), cv()), sansMdp);
+  ok(r.statusCode === 500, 'SMTP non configuré -> 500 (le candidat voit l\'erreur)');
+  r = await lancer(multipart(champs(), cv()), env, () => ({ sendMail: async () => { throw new Error('SMTP refusé'); } }));
+  ok(r.statusCode === 500 && !JSON.parse(r.body).ok, 'SMTP en échec -> 500 (le candidat peut réessayer)');
+}
+// 6) méthode et sécurité
+{
+  envoyes.length = 0;
+  ok((await lancer({ httpMethod: 'GET', headers: {} })).statusCode === 405, 'méthode GET -> 405');
+  ok((await lancer({ httpMethod: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).statusCode === 400, 'corps non multipart -> 400');
+  await lancer(multipart(champs({ Message: '<script>alert(1)</script>' }), cv()));
+  ok(envoyes.length && !/<script>/.test(envoyes[0].html), 'sécurité : le HTML saisi par le candidat est neutralisé');
+}
+// 7) devis et partenariat (Netlify Forms) : inchangés, jamais de CV
+{
+  envoyes.length = 0;
+  const h = devisHandler({ env, createTransport });
+  const corps = (form_name) => ({ body: JSON.stringify({ payload: { id: 's1', form_name, data: { Email: 'client@exemple.fr', 'Nom et prénom': 'Camille Martin' } } }) });
+  await h(corps('devis'));
+  ok(envoyes[0].to.join() === 'contact@carsitting.fr,autre@carsitting.fr' && /contact@carsitting\.fr/.test(envoyes[0].from), 'devis : deux destinataires, expéditeur contact@');
+  envoyes.length = 0;
+  const r = await h(corps('recrutement'));
+  ok(r.statusCode === 200 && envoyes.length === 0, 'recrutement : ignoré par la fonction Netlify Forms (traité par « candidature »)');
 }
 console.log(echecs ? `\n${echecs} échec(s)` : '\nTous les tests passent');
 process.exit(echecs ? 1 : 0);
