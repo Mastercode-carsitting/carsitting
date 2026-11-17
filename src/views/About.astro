@@ -142,7 +142,8 @@ const f = copy.fields;
       </div>
 
       {/* Les noms de champs (name) restent en français : les demandes arrivent toujours en français. */}
-      <form data-form data-subject="Devenir partenaire" class="form-dark space-y-[18px] border border-or/28 bg-ivoire/[0.055] p-6 sm:p-[34px]">
+      <form data-form name="partenaire" data-netlify="true" data-netlify-honeypot="_gotcha" data-subject="Devenir partenaire" class="form-dark space-y-[18px] border border-or/28 bg-ivoire/[0.055] p-6 sm:p-[34px]">
+        <input type="hidden" name="form-name" value="partenaire" />
         <Field label={f.establishment[0]} name="Établissement" placeholder={f.establishment[1]} autocomplete="organization" />
         <Field label={f.role[0]} name="Fonction" placeholder={f.role[1]} autocomplete="organization-title" />
         <Field label={f.email[0]} name="Email" type="email" placeholder={f.email[1]} autocomplete="email" inputmode="email" required />

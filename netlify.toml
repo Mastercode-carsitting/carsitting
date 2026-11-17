@@ -1,10 +1,11 @@
 # Déploiement Netlify : site statique Astro.
 # Variables à définir dans Netlify (Site configuration > Environment variables) :
 #   SITE_URL = https://carsitting.fr
-#   PUBLIC_FORM_ENDPOINT = (adresse du service d'envoi des formulaires, quand il sera choisi)
 [build]
   command = "npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "22"
+  # Envoi des formulaires par Netlify Forms (Netlify > Forms) : voir src/scripts/forms.ts.
+  PUBLIC_FORM_BACKEND = "netlify"

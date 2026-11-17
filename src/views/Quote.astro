@@ -74,7 +74,8 @@ const c = {
 
   <section class="s-ivoire px-5 py-12 sm:px-6 md:py-16">
     <div class="mx-auto max-w-3xl">
-      <form data-form data-subject="Demande de devis" class="form-light space-y-12" aria-describedby="devis-mentions">
+      <form data-form name="devis" data-netlify="true" data-netlify-honeypot="_gotcha" data-subject="Demande de devis" class="form-light space-y-12" aria-describedby="devis-mentions">
+        <input type="hidden" name="form-name" value="devis" />
         <fieldset>
           <legend class="w-full text-center font-serif text-3xl text-nuit md:text-4xl">{c.question}</legend>
           <p class="mt-3 text-center text-sm text-encre/60">{c.hint}</p>
