@@ -199,6 +199,9 @@ async function submit(form: HTMLFormElement) {
         // Candidature : envoi direct à la fonction, avec le CV (multipart, sans en-tête Content-Type : le navigateur le fixe).
         const body = new FormData();
         Object.entries(fields).forEach(([k, v]) => body.append(k, v));
+        // Anti-spam : heure d'affichage et d'envoi (un robot envoie instantanément ; la fonction refuse un délai trop court).
+        body.append('_t', form.dataset.loadedAt || String(Date.now()));
+        body.append('_n', String(Date.now()));
         form.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((i) => i.files?.[0] && body.append(i.name, i.files[0]));
         res = await fetch(form.dataset.endpoint, { method: 'POST', body });
       } else {
@@ -209,7 +212,8 @@ async function submit(form: HTMLFormElement) {
       form.reset();
       form.querySelectorAll<HTMLInputElement>('input[name="Parcours"]')[0]?.dispatchEvent(new Event('change'));
     } catch {
-      setState(form, 'error', msg().failed);
+      // En cas d'échec, l'adresse proposée est celle du formulaire (recrutement@ pour les candidatures).
+      setState(form, 'error', msg().failed.replace(CONTACT, form.dataset.contact || CONTACT));
     }
     return;
   }
@@ -224,6 +228,7 @@ export function initForms() {
   document.querySelectorAll<HTMLFormElement>('form[data-form]').forEach((form) => {
     if (form.dataset.ready) return;
     form.dataset.ready = '1';
+    form.dataset.loadedAt = String(Date.now());
     form.noValidate = true; // validation prise en charge ici, avec des messages en français sous chaque champ
 
     // Pas de date passée pour un événement.

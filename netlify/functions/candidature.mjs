@@ -3,6 +3,9 @@
 // et ne conserve rien : les données ne vivent que dans la boîte de réception (durée annoncée : 2 ans maximum).
 // Si le mail ne part pas, la fonction répond par une erreur et le candidat en est informé (il peut réessayer).
 //
+// Anti-spam (sans service tiers) : champ piège invisible, contrôle de provenance (la requête doit venir du site) et délai
+// minimum entre l'affichage du formulaire et son envoi (un robot envoie instantanément).
+//
 // Limites : corps de requête de 6 Mo chez Netlify (base64 compris) : CV de 4 Mo maximum (PDF, DOC ou DOCX).
 // Variables d'environnement : voir lib/mailer.mjs.
 import busboy from 'busboy';
@@ -10,10 +13,13 @@ import { teamMail, visitorMail, isEmail } from './lib/mail-templates.mjs';
 import { mailContext, safeName } from './lib/mailer.mjs';
 
 export const MAX_CV = 4 * 1024 * 1024;
+const MIN_DELAY = 4000; // ms : en dessous, ce n'est pas un humain
+const MAX_DELAY = 24 * 60 * 60 * 1000; // page ouverte depuis plus d'un jour : à recharger
+
 
 // Champs obligatoires du formulaire (mêmes noms que dans src/views/Recruit.astro).
 const REQUIRED = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Ville de résidence', 'Permis B en cours de validité', 'Permis B depuis le', 'Conduite quotidienne', 'Déjà voiturier', 'Statut professionnel', 'Disponibilités', 'Consentement (conservation 2 ans)'];
-const IGNORED = new Set(['_gotcha', 'form-name', 'bot-field']);
+const IGNORED = new Set(['_gotcha', '_t', '_n', 'form-name', 'bot-field']);
 
 /** Lit un corps « multipart/form-data » (champs + au plus un fichier) tel que transmis par Netlify. */
 export function parseMultipart(event) {
@@ -38,6 +44,29 @@ export function parseMultipart(event) {
   });
 }
 
+/** Sites autorisés à envoyer une candidature : le domaine du site et les adresses Netlify de ce projet. */
+export function allowedHosts(env) {
+  const hosts = ['carsitting.fr', 'www.carsitting.fr'];
+  for (const u of [env.URL, env.DEPLOY_PRIME_URL, env.DEPLOY_URL, ...String(env.ALLOWED_ORIGINS || '').split(',')]) {
+    try { if (u && u.trim()) hosts.push(new URL(u.includes('://') ? u.trim() : `https://${u.trim()}`).hostname); } catch { /* adresse invalide : ignorée */ }
+  }
+  return hosts;
+}
+
+/** La requête doit venir d'une page du site (en-tête Origin, ou Referer à défaut) : les navigateurs l'envoient toujours. */
+export function originAllowed(headers, env) {
+  const raw = headers?.origin || headers?.Origin || headers?.referer || headers?.Referer || '';
+  try { return allowedHosts(env).includes(new URL(raw).hostname); } catch { return false; }
+}
+
+/** Délai entre l'affichage du formulaire (_t) et son envoi (_n), mesuré sur l'horloge du visiteur ; _n doit aussi être récent. */
+export function humanTiming(fields, now = Date.now()) {
+  const t = Number(fields._t);
+  const n = Number(fields._n);
+  if (!Number.isFinite(t) || !Number.isFinite(n)) return false;
+  return n - t >= MIN_DELAY && n - t <= MAX_DELAY && Math.abs(now - n) <= 2 * MAX_DELAY;
+}
+
 /** Le contenu doit correspondre à l'extension : un fichier renommé (ex. .exe en .pdf) est refusé. */
 export function validCv(file) {
   if (!file || !file.content.length || file.truncated || file.content.length > MAX_CV) return false;
@@ -55,6 +84,10 @@ export function makeHandler(deps = {}) {
   return async (event) => {
     if (event.httpMethod && event.httpMethod !== 'POST') return json(405, { ok: false, error: 'method' });
 
+    const env = deps.env || process.env;
+    // Provenance : seule une page du site peut envoyer une candidature.
+    if (!originAllowed(event.headers, env)) return json(403, { ok: false, error: 'origin' });
+
     let parsed;
     try {
       parsed = await parseMultipart(event);
@@ -66,10 +99,13 @@ export function makeHandler(deps = {}) {
     // Piège anti-spam : un robot remplit le champ invisible. On répond « ok » sans rien envoyer.
     if ((fields._gotcha || '').trim()) return json(200, { ok: true });
 
+    // Délai : un envoi quasi instantané (ou d'une page très ancienne) est refusé.
+    if (!humanTiming(fields, deps.now ? deps.now() : Date.now())) return json(400, { ok: false, error: 'timing' });
+
     const missing = REQUIRED.filter((n) => !String(fields[n] || '').trim());
     if (missing.length || !isEmail(fields.Email) || !validCv(file)) return json(400, { ok: false, error: 'validation' });
 
-    const mail = mailContext(deps.env || process.env, 'recrutement', deps.createTransport);
+    const mail = mailContext(env, 'recrutement', deps.createTransport);
     if (!mail) {
       console.error('Variables SMTP manquantes : candidature non envoyée.');
       return json(500, { ok: false, error: 'config' });

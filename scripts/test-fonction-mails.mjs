@@ -13,19 +13,20 @@ const createTransport = () => ({ sendMail: async (m) => { envoyes.push(m); retur
 const env = { SMTP_HOST: 'smtp.test', SMTP_USER: 'hostmaster@carsitting.fr', SMTP_PASS: 'x', MAIL_TO: 'contact@carsitting.fr, autre@carsitting.fr', MAIL_FROM: 'contact@carsitting.fr', MAIL_FROM_RECRUTEMENT: 'recrutement@carsitting.fr' };
 
 // Construit un corps « multipart/form-data » comme le fait le navigateur (noms accentués en UTF-8).
-function multipart(fields, file) {
+function multipart(fields, file, headers = {}) {
   const boundary = '----CarSittingTest' + Math.random().toString(16).slice(2);
   const parts = [];
   for (const [k, v] of Object.entries(fields)) parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`, 'utf8'));
   if (file) parts.push(Buffer.concat([Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${file.field || 'CV'}"; filename="${file.filename}"\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`, 'utf8'), file.content, Buffer.from('\r\n')]));
   parts.push(Buffer.from(`--${boundary}--\r\n`));
-  return { httpMethod: 'POST', headers: { 'content-type': `multipart/form-data; boundary=${boundary}` }, body: Buffer.concat(parts).toString('base64'), isBase64Encoded: true };
+  return { httpMethod: 'POST', headers: { 'content-type': `multipart/form-data; boundary=${boundary}`, origin: 'https://carsitting.fr', ...headers }, body: Buffer.concat(parts).toString('base64'), isBase64Encoded: true };
 }
 const pdf = Buffer.concat([Buffer.from('%PDF-1.4\n'), Buffer.from('faux cv de test')]);
 const champs = (extra = {}) => ({
   subject: 'Candidature — Karim Benali', Prénom: 'Karim', Nom: 'Benali', Email: 'karim@exemple.fr', Téléphone: '06 11 22 33 44', 'Ville de résidence': 'Saint-Denis',
   'Permis B en cours de validité': 'Oui', 'Permis B depuis le': '12/05/2016', 'Conduite quotidienne': 'Oui, tous les jours', 'Déjà voiturier': 'Oui', 'Statut professionnel': 'Salarié',
-  Disponibilités: 'En soirée, Week-ends', 'Consentement (conservation 2 ans)': 'Oui', ...extra,
+  Disponibilités: 'En soirée, Week-ends', 'Consentement (conservation 2 ans)': 'Oui',
+  _t: String(Date.now() - 20000), _n: String(Date.now()), ...extra,
 });
 const cv = (extra = {}) => ({ field: 'CV', filename: 'CV Karim Bénali.pdf', type: 'application/pdf', content: pdf, ...extra });
 const lancer = (event, e = env, t = createTransport) => candidatureHandler({ env: e, createTransport: t })(event);
@@ -71,6 +72,29 @@ for (const [nom, fichier] of [
   r = await lancer(multipart(champs({ Email: 'pas-un-mail' }), cv()));
   ok(r.statusCode === 400 && !envoyes.length, 'refus : adresse e-mail invalide -> 400');
 }
+// 3 bis) anti-spam : provenance et délai
+{
+  envoyes.length = 0;
+  let r = await lancer(multipart(champs(), cv(), { origin: 'https://site-pirate.example' }));
+  ok(r.statusCode === 403 && !envoyes.length, 'provenance : site étranger -> 403, aucun mail');
+  r = await lancer(multipart(champs(), cv(), { origin: undefined }));
+  ok(r.statusCode === 403 && !envoyes.length, 'provenance : sans en-tête Origin -> 403');
+  r = await lancer(multipart(champs(), cv(), { origin: undefined, referer: 'https://carsitting.fr/recrutement/' }));
+  ok(r.statusCode === 200 && envoyes.length === 2, "provenance : Referer du site accepté à défaut d'Origin");
+  envoyes.length = 0;
+  r = await lancer(multipart(champs(), cv(), { origin: 'https://starlit-banoffee-801f87.netlify.app' }), { ...env, URL: 'https://starlit-banoffee-801f87.netlify.app' });
+  ok(r.statusCode === 200, 'provenance : adresse Netlify du projet (variable URL) acceptée');
+  envoyes.length = 0;
+  r = await lancer(multipart(champs({ _t: String(Date.now() - 500), _n: String(Date.now()) }), cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'délai : envoi en 0,5 s (robot) -> refusé');
+  r = await lancer(multipart(champs({ _t: String(Date.now() - 3 * 86400000), _n: String(Date.now()) }), cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'délai : page ouverte depuis 3 jours -> refusé');
+  const { _t, _n, ...sansHeure } = champs();
+  r = await lancer(multipart(sansHeure, cv()));
+  ok(r.statusCode === 400 && !envoyes.length, 'délai : horodatages absents (envoi direct à la fonction) -> refusé');
+  r = await lancer(multipart(champs({ _t: String(Date.now() - 20000), _n: String(Date.now() - 5 * 86400000) }), cv()));
+  ok(r.statusCode === 400 && !envoyes.length, "délai : date d'envoi falsifiée très ancienne -> refusé");
+}
 // 4) piège anti-spam : réponse « ok » mais rien d'envoyé
 {
   envoyes.length = 0;
@@ -90,7 +114,7 @@ for (const [nom, fichier] of [
 {
   envoyes.length = 0;
   ok((await lancer({ httpMethod: 'GET', headers: {} })).statusCode === 405, 'méthode GET -> 405');
-  ok((await lancer({ httpMethod: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).statusCode === 400, 'corps non multipart -> 400');
+  ok((await lancer({ httpMethod: 'POST', headers: { 'content-type': 'application/json', origin: 'https://carsitting.fr' }, body: '{}' })).statusCode === 400, 'corps non multipart -> 400');
   await lancer(multipart(champs({ Message: '<script>alert(1)</script>' }), cv()));
   ok(envoyes.length && !/<script>/.test(envoyes[0].html), 'sécurité : le HTML saisi par le candidat est neutralisé');
 }
