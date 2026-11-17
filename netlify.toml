@@ -5,6 +5,10 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [build.environment]
   NODE_VERSION = "22"
   # Envoi des formulaires par Netlify Forms (Netlify > Forms) : voir src/scripts/forms.ts.
