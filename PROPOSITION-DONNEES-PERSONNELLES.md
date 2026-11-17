@@ -5,7 +5,7 @@
 ## À décider avant de rédiger la version définitive
 
 1. **Durée de conservation** : 3 ans après le dernier contact est une pratique courante pour la prospection commerciale. Proposé ci-dessous, à valider.
-2. **Service d'envoi des formulaires** : pas encore choisi (Formspree, Resend…). Il faudra le nommer comme destinataire, et vérifier où il stocke les données (idéalement dans l'Union européenne).
+2. **Service d'envoi des formulaires** : Netlify Forms (hébergeur Netlify Inc.) et envoi des mails par la boîte LWS du domaine. Il faudra les nommer comme destinataires, et vérifier où est stocké les données (idéalement dans l'Union européenne).
 3. **Polices** : hébergées sur le site lui-même (plus aucune requête vers Google), rien à mentionner.
 4. **Responsable des données** : CARSITTING SAS, contact@carsitting.fr (validé).
 5. **Cookies** : aucun (validé, comme l'ancien site). Si vous ajoutez un outil de mesure, il faudra un bandeau de consentement.

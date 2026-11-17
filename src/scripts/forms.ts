@@ -1,14 +1,9 @@
 // Formulaires CarSitting : parcours conditionnel, validation en français, envoi.
 //
-// Envoi, par ordre de priorité :
-//  1. PUBLIC_FORM_BACKEND=netlify : Netlify Forms (aucun service tiers ; les demandes arrivent dans Netlify et par e-mail
-//     selon la notification réglée dans Netlify > Forms). Mode actif en production (voir netlify.toml).
-//  2. PUBLIC_FORM_ENDPOINT défini (Formspree, Getform, une route API…) : la demande y est postée en JSON.
-//  3. Sinon, repli sur l'ouverture de la messagerie du visiteur (mailto), faute de backend (développement local).
+// Envoi : Netlify Forms (aucun service tiers). Les demandes sont enregistrées dans Netlify > Forms, puis la fonction
+// netlify/functions/submission-created.mjs envoie les mails à la charte (équipe et accusé de réception).
+// En développement local (npm run dev), Netlify n'existe pas : le formulaire ouvre alors la messagerie (mailto) pour tester.
 
-const BACKEND = import.meta.env.PUBLIC_FORM_BACKEND as string | undefined;
-
-const ENDPOINT = import.meta.env.PUBLIC_FORM_ENDPOINT as string | undefined;
 const CONTACT = 'contact@carsitting.fr';
 
 // Messages affichés au visiteur, dans la langue de la page. Les demandes reçues restent en français.
@@ -161,9 +156,9 @@ async function submit(form: HTMLFormElement) {
   const subject = [form.dataset.subject, english && 'EN', data['Parcours'], data['Nom et prénom'] || data['Établissement']].filter(Boolean).join(' — ');
   setState(form, 'pending');
 
-  if (BACKEND === 'netlify') {
+  if (!import.meta.env.DEV) {
     try {
-      // Netlify Forms : envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet de l'e-mail.
+      // Envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet des mails.
       const body = new URLSearchParams({ 'form-name': form.getAttribute('name') || '', subject, ...data });
       const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
       if (!res.ok) throw new Error(String(res.status));
@@ -176,23 +171,7 @@ async function submit(form: HTMLFormElement) {
     return;
   }
 
-  if (ENDPOINT) {
-    try {
-      const res = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ _subject: subject, ...data }),
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      setState(form, 'success', msg().thanksLong);
-      form.reset();
-      form.querySelectorAll<HTMLInputElement>('input[name="Parcours"]')[0]?.dispatchEvent(new Event('change'));
-    } catch {
-      setState(form, 'error', msg().failed);
-    }
-    return;
-  }
-
+  // Développement local uniquement.
   const body = Object.entries(data).map(([k, v]) => `${k} : ${v}`).join('\n');
   window.location.href = `mailto:${CONTACT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   setState(form, 'idle', msg().mailto);

@@ -11,5 +11,3 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  # Envoi des formulaires par Netlify Forms (Netlify > Forms) : voir src/scripts/forms.ts.
-  PUBLIC_FORM_BACKEND = "netlify"
