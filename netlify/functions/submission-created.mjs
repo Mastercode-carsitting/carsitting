@@ -5,9 +5,9 @@
 // Variables à définir dans Netlify (Project configuration > Environment variables). Jamais dans le code :
 //   SMTP_HOST   serveur d'envoi (ex. mail.carsitting.fr)
 //   SMTP_PORT   465 (SSL) par défaut
-//   SMTP_USER   adresse de la boîte qui envoie (ex. contact@carsitting.fr)
+//   SMTP_USER   adresse de la boîte qui envoie (ex. une boîte dédiée site@carsitting.fr, créée chez LWS)
 //   SMTP_PASS   mot de passe de cette boîte
-//   MAIL_TO     adresse qui reçoit les demandes (par défaut : SMTP_USER)
+//   MAIL_TO     adresse qui reçoit les demandes et qui reçoit les réponses des visiteurs (ex. contact@carsitting.fr)
 //   MAIL_FROM_NAME  nom affiché (par défaut : CarSitting)
 import nodemailer from 'nodemailer';
 import { teamMail, visitorMail, isEmail, oneLine } from './lib/mail-templates.mjs';
@@ -49,7 +49,7 @@ export const handler = async (event) => {
     // Accusé de réception : seulement si l'adresse du visiteur est valide ; un échec ici ne bloque pas le reste.
     if (isEmail(visitor)) {
       const ack = visitorMail(payload);
-      await transporter.sendMail({ from, to: visitor.trim(), subject: ack.subject, html: ack.html, text: ack.text }).catch((e) => console.error('Accusé non envoyé :', e.message));
+      await transporter.sendMail({ from, to: visitor.trim(), replyTo: MAIL_TO || SMTP_USER, subject: ack.subject, html: ack.html, text: ack.text }).catch((e) => console.error('Accusé non envoyé :', e.message));
     }
     return { statusCode: 200, body: 'Mails envoyés' };
   } catch (e) {
