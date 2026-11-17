@@ -1,7 +1,7 @@
 ---
 // Ouverture plein écran de chaque page : photo(s) pleine largeur sous un voile translucide, texte centré.
 // Plusieurs images = fondu enchaîné lent (voir scripts/motion.ts). Une seule = image fixe avec léger zoom.
-interface Slide { src: string; position?: string }
+interface Slide { src: string; fallback?: string; position?: string }
 interface Action { href: string; label: string }
 interface Props {
   slides: Slide[];
@@ -22,7 +22,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   <div data-hero-media class="absolute inset-0 -z-20 bg-nuit-deep">
     {slides.map((s, i) => (
       <div class="hero-slide" data-active={i === 0 ? '' : undefined}>
-        <img src={s.src} alt="" width="1920" height="1080" loading="eager" fetchpriority={i === 0 ? 'high' : 'low'} decoding="async" class="size-full object-cover" style={`object-position:${s.position ?? 'center'}`} />
+        <img src={s.src} data-fallback={s.fallback} alt="" width="1920" height="1080" loading="eager" fetchpriority={i === 0 ? 'high' : 'low'} decoding="async" class="size-full object-cover" style={`object-position:${s.position ?? 'center'}`} />
       </div>
     ))}
   </div>

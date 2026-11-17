@@ -4,7 +4,7 @@
 import { getLang, t, path } from '../i18n';
 const lang = getLang(Astro.url);
 const ui = t(lang);
-const { theme = 'encre', image } = Astro.props as { theme?: 'encre' | 'ivoire'; image?: string };
+const { theme = 'encre', image } = Astro.props as { theme?: 'encre' | 'ivoire'; image?: { src: string; fallback?: string } };
 ---
 <section class:list={[
   'relative isolate overflow-hidden px-6 text-center',
@@ -14,7 +14,7 @@ const { theme = 'encre', image } = Astro.props as { theme?: 'encre' | 'ivoire'; 
   {image && (
     <>
       <div class="absolute inset-0 -z-20 overflow-hidden" data-cta-media>
-        <img src={image} alt="" loading="lazy" class="size-full object-cover" />
+        <img src={image.src} data-fallback={image.fallback} alt="" loading="lazy" class="size-full object-cover" />
       </div>
       <div class="absolute inset-0 -z-10 bg-nuit-deep/70" aria-hidden="true"></div>
     </>

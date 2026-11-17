@@ -107,6 +107,16 @@ const organization = {
     <script is:inline>
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('js-motion');
     </script>
+    <script is:inline>
+      // Photos du client (LWS) : si l'une ne se charge pas, on affiche la photo d'origine du projet (data-fallback).
+      (function () {
+        var fix = function (i) { var f = i.getAttribute('data-fallback'); if (f && i.getAttribute('src') !== f) { i.removeAttribute('data-fallback'); i.src = f; } };
+        document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG') fix(e.target); }, true);
+        var scan = function () { document.querySelectorAll('img[data-fallback]').forEach(function (i) { if (i.complete && i.naturalWidth === 0) fix(i); }); };
+        document.addEventListener('DOMContentLoaded', scan);
+        document.addEventListener('astro:page-load', scan);
+      })();
+    </script>
     <ClientRouter fallback="swap" />
   </head>
   <body>

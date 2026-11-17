@@ -6,6 +6,7 @@ import Ornament from '../components/Ornament.astro';
 import Partners from '../components/Partners.astro';
 import Cta from '../components/Cta.astro';
 import { getLang, path, t } from '../i18n';
+import { photo } from '../data/photos';
 
 const lang = getLang(Astro.url);
 const ui = t(lang);
@@ -77,14 +78,14 @@ const copy = {
     ],
   },
 }[lang];
-const cardMedia = [['/images/hotel.jpg', 'center 55%'], ['/images/restaurant.jpg', 'center'], ['/images/evenement.jpg', '60% center']];
+const cardMedia = [[photo('accueilCarteHotels'), 'center 55%'], [photo('accueilCarteRestaurants'), 'center'], [photo('accueilCarteEvenements'), '60% center']] as const;
 ---
 <Base title={copy.title} description={copy.description}>
   <Hero
     slides={[
-      { src: '/images/paris-nuit.jpg', position: 'center 55%' },
-      { src: '/images/services-evenement.jpg', position: 'center 35%' },
-      { src: '/images/hotel.jpg', position: 'center 60%' },
+      { ...photo('accueilOuverture1'), position: 'center 55%' },
+      { ...photo('accueilOuverture2'), position: 'center 35%' },
+      { ...photo('accueilOuverture3'), position: 'center 60%' },
     ]}
     label={copy.heroLabel}
     title={copy.heroTitle}
@@ -104,7 +105,7 @@ const cardMedia = [['/images/hotel.jpg', 'center 55%'], ['/images/restaurant.jpg
     <div class="mx-auto grid max-w-7xl items-end gap-12 md:grid-cols-12 md:gap-10">
       <figure class="md:col-span-7">
         <div class="overflow-hidden">
-          <img src={'/images/voiturier-demeure.jpg'} alt={copy.gestureAlt} width="1536" height="1024" loading="lazy" class="aspect-[4/5] w-full object-cover object-[35%_20%] md:aspect-[5/6]" />
+          <img src={photo('accueilGeste').src} data-fallback={photo('accueilGeste').fallback} alt={copy.gestureAlt} width="1536" height="1024" loading="lazy" class="aspect-[4/5] w-full object-cover object-[35%_20%] md:aspect-[5/6]" />
         </div>
         <figcaption class="label mt-5 !text-encre/50">{copy.gestureCaption}</figcaption>
       </figure>
@@ -132,7 +133,7 @@ const cardMedia = [['/images/hotel.jpg', 'center 55%'], ['/images/restaurant.jpg
           <article class="card">
             <a href={path('services', lang)} class="flex flex-col" aria-label={`${title} — ${copy.serviceLink.toLowerCase()}`}>
               <div class="card-media order-last mt-7 overflow-hidden md:order-none md:mt-0">
-                <img src={cardMedia[i][0]} alt={alt} loading="lazy" class="aspect-[4/5] w-full object-cover" style={`object-position:${cardMedia[i][1]}`} />
+                <img src={cardMedia[i][0].src} data-fallback={cardMedia[i][0].fallback} alt={alt} loading="lazy" class="aspect-[4/5] w-full object-cover" style={`object-position:${cardMedia[i][1]}`} />
               </div>
               <p class="font-serif text-3xl font-light italic text-or md:mt-7">{n}</p>
               <h3 class="mt-3 font-serif text-[32px] font-normal leading-tight text-nuit">{title}</h3>
@@ -165,5 +166,5 @@ const cardMedia = [['/images/hotel.jpg', 'center 55%'], ['/images/restaurant.jpg
     </div>
   </section>
 
-  <Cta image={'/images/voiturier-smoking.jpg'} />
+  <Cta image={photo('accueilBandeauDevis')} />
 </Base>
