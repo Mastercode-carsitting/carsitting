@@ -11,6 +11,7 @@ const MSG = {
   fr: {
     required: 'Ce champ est requis.', choose: 'Veuillez choisir une option.',
     email: 'Indiquez une adresse email valide (ex. vous@exemple.fr).', tel: 'Indiquez un numéro de téléphone valide (10 chiffres minimum).',
+    fileSize: 'Fichier trop lourd (5 Mo maximum).', fileType: 'Format accepté : PDF, DOC ou DOCX.',
     dateMin: (d: string) => `Choisissez une date à partir du ${d}.`, dateMax: (d: string) => `Choisissez une date jusqu'au ${d}.`, min: (n: string) => `La valeur doit être au moins ${n}.`,
     max: (n: string) => `La valeur doit être au plus ${n}.`, integer: 'Indiquez un nombre entier.',
     pending: 'Envoi en cours…', sent: 'Demande transmise',
@@ -22,6 +23,7 @@ const MSG = {
   en: {
     required: 'This field is required.', choose: 'Please choose an option.',
     email: 'Please enter a valid email address (e.g. you@example.com).', tel: 'Please enter a valid phone number (at least 10 digits).',
+    fileSize: 'File too large (5 MB maximum).', fileType: 'Accepted formats: PDF, DOC or DOCX.',
     dateMin: (d: string) => `Please choose a date from ${d}.`, dateMax: (d: string) => `Please choose a date up to ${d}.`, min: (n: string) => `The value must be at least ${n}.`,
     max: (n: string) => `The value must be at most ${n}.`, integer: 'Please enter a whole number.',
     pending: 'Sending…', sent: 'Request sent',
@@ -43,6 +45,14 @@ function checkTel(el: Control) {
   el.setCustomValidity(v && (/[^0-9+ .()-]/.test(v) || digits < 10 || digits > 15) ? 'tel' : '');
 }
 
+// CV : PDF, DOC ou DOCX, 5 Mo maximum.
+const MAX_FILE = 5 * 1024 * 1024;
+function checkFile(el: Control) {
+  if (!(el instanceof HTMLInputElement) || el.type !== 'file') return;
+  const f = el.files?.[0];
+  el.setCustomValidity(!f ? '' : f.size > MAX_FILE ? 'size' : !/\.(pdf|docx?)$/i.test(f.name) ? 'type' : '');
+}
+
 const frDate = (iso: string) => {
   const [y, m, d] = iso.split('-');
   return d && m && y ? `${d}/${m}/${y}` : iso;
@@ -61,6 +71,7 @@ function messageFor(el: Control): string {
   if (v.valueMissing) return el instanceof HTMLSelectElement ? m.choose : m.required;
   if (v.typeMismatch && el.type === 'email') return m.email;
   if (v.customError && el.type === 'tel') return m.tel;
+  if (v.customError && el.type === 'file') return el.validationMessage === 'size' ? m.fileSize : m.fileType;
   if (v.rangeUnderflow && el.type === 'date') return m.dateMin(shownDate((el as HTMLInputElement).min));
   if (v.rangeOverflow && el.type === 'date') return m.dateMax(shownDate((el as HTMLInputElement).max));
   if (v.rangeUnderflow) return m.min((el as HTMLInputElement).min);
@@ -75,6 +86,7 @@ function controls(form: HTMLFormElement) {
 
 function showError(el: Control) {
   checkTel(el);
+  checkFile(el);
   const err = document.getElementById(el.getAttribute('aria-describedby') || '');
   const invalid = !el.disabled && !el.checkValidity();
   el.setAttribute('aria-invalid', String(invalid));
@@ -116,6 +128,7 @@ function payload(form: HTMLFormElement) {
   const multi: Record<string, string[]> = {};
   for (const el of [...form.elements] as Control[]) {
     if (!el.name || el.name === '_gotcha' || el.disabled || el.closest('fieldset:disabled')) continue;
+    if (el instanceof HTMLInputElement && el.type === 'file') continue; // le fichier est ajouté à part (voir submit)
     // Groupe de cases à cocher : les valeurs cochées sont regroupées sur une seule ligne.
     if (el instanceof HTMLInputElement && el.type === 'checkbox' && el.hasAttribute('data-multi')) {
       if (el.checked) (multi[el.name] ||= []).push(el.value);
@@ -179,8 +192,18 @@ async function submit(form: HTMLFormElement) {
   if (!import.meta.env.DEV) {
     try {
       // Envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet des mails.
-      const body = new URLSearchParams({ 'form-name': form.getAttribute('name') || '', subject, ...data });
-      const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+      const files = [...form.querySelectorAll<HTMLInputElement>('input[type="file"]')].filter((i) => i.files?.length);
+      const fields = { 'form-name': form.getAttribute('name') || '', subject, ...data };
+      let res: Response;
+      if (files.length) {
+        // Avec un fichier (CV) : envoi « multipart », sans en-tête Content-Type (le navigateur le fixe).
+        const body = new FormData();
+        Object.entries(fields).forEach(([k, v]) => body.append(k, v));
+        files.forEach((i) => body.append(i.name, i.files![0]));
+        res = await fetch('/', { method: 'POST', body });
+      } else {
+        res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(fields).toString() });
+      }
       if (!res.ok) throw new Error(String(res.status));
       setState(form, 'success', form.dataset.success || msg().thanksLong);
       form.reset();
