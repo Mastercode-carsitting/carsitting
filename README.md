@@ -111,6 +111,15 @@ Gérées dans `src/layouts/Base.astro` : chaque page passe son `title` et sa `de
 
 Après une mise en ligne, forcer la mise à jour des aperçus déjà en cache avec le [débogueur Facebook](https://developers.facebook.com/tools/debug/) et le [Post Inspector LinkedIn](https://www.linkedin.com/post-inspector/).
 
+## Photos modifiables par le client (LWS)
+
+15 photos (ouvertures, cartes, prestations, équipes) peuvent être remplacées par le client sans développeur : il dépose un fichier du même nom dans le dossier `photos` de son hébergement LWS (sous-domaine `photos.carsitting.fr`). La liste, les noms de fichiers et les formats sont dans `src/data/photos.ts` ; le guide remis au client est `GUIDE-PHOTOS.md`.
+
+- **Activation** : variable Netlify `PUBLIC_PHOTOS_BASE = https://photos.carsitting.fr`, puis relancer un déploiement. **Sans cette variable (ou en développement local), toutes les photos viennent du projet** (`public/images/`).
+- **Repli** : si un fichier manque ou si LWS ne répond pas, le navigateur remet automatiquement la photo d'origine (`data-fallback`, petit script dans `Base.astro`). Le site ne reste jamais sans image.
+- **Mise en place LWS** : sous-domaine `photos` pointant vers un dossier `photos` (HTTPS actif), avec le fichier `.htaccess` fourni (pas de liste de fichiers, pas de scripts, cache de 10 minutes), puis dépôt des 15 photos de départ.
+- Pour ajouter un emplacement : l'ajouter dans `slots` (`src/data/photos.ts`) et utiliser `photo('clé')` dans la page.
+
 ## Déploiement (Netlify)
 
 Le site est statique. Sur Netlify : relier le dépôt GitHub (la configuration est dans `netlify.toml` : `npm run build`, dossier `dist`), puis définir `SITE_URL` (`https://carsitting.fr`) et les variables d'envoi des mails (voir « Mails à la charte »). Le nom de domaine (carsitting.fr) est chez LWS : seuls les enregistrements A, AAAA et `www` de la zone DNS changent, avec les valeurs données par Netlify. **Ne jamais toucher aux enregistrements MX, TXT (SPF) et `mail`** : ils font fonctionner les adresses e-mail.
