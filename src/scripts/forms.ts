@@ -1,7 +1,12 @@
 // Formulaires CarSitting : parcours conditionnel, validation en français, envoi.
 //
-// Envoi : si PUBLIC_FORM_ENDPOINT est défini (Formspree, Getform, une route API…), la demande y est
-// postée en JSON. Sinon, repli sur l'ouverture de la messagerie du visiteur (mailto), faute de backend.
+// Envoi, par ordre de priorité :
+//  1. PUBLIC_FORM_BACKEND=netlify : Netlify Forms (aucun service tiers ; les demandes arrivent dans Netlify et par e-mail
+//     selon la notification réglée dans Netlify > Forms). Mode actif en production (voir netlify.toml).
+//  2. PUBLIC_FORM_ENDPOINT défini (Formspree, Getform, une route API…) : la demande y est postée en JSON.
+//  3. Sinon, repli sur l'ouverture de la messagerie du visiteur (mailto), faute de backend (développement local).
+
+const BACKEND = import.meta.env.PUBLIC_FORM_BACKEND as string | undefined;
 
 const ENDPOINT = import.meta.env.PUBLIC_FORM_ENDPOINT as string | undefined;
 const CONTACT = 'contact@carsitting.fr';
@@ -155,6 +160,21 @@ async function submit(form: HTMLFormElement) {
   if (english) data['Langue du visiteur'] = 'Anglais — répondre en anglais';
   const subject = [form.dataset.subject, english && 'EN', data['Parcours'], data['Nom et prénom'] || data['Établissement']].filter(Boolean).join(' — ');
   setState(form, 'pending');
+
+  if (BACKEND === 'netlify') {
+    try {
+      // Netlify Forms : envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet de l'e-mail.
+      const body = new URLSearchParams({ 'form-name': form.getAttribute('name') || '', subject, ...data });
+      const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+      if (!res.ok) throw new Error(String(res.status));
+      setState(form, 'success', msg().thanksLong);
+      form.reset();
+      form.querySelectorAll<HTMLInputElement>('input[name="Parcours"]')[0]?.dispatchEvent(new Event('change'));
+    } catch {
+      setState(form, 'error', msg().failed);
+    }
+    return;
+  }
 
   if (ENDPOINT) {
     try {

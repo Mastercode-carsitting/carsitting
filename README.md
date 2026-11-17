@@ -93,12 +93,9 @@ Deux formulaires (devis et partenaire) partagent `src/scripts/forms.ts` :
 - parcours conditionnel sur le devis : seuls les champs du parcours choisi sont validés et envoyés ;
 - champ piège anti-spam.
 
-**Envoi.** Si la variable `PUBLIC_FORM_ENDPOINT` est définie (Formspree, route API…), la demande y est postée en JSON. Sinon, le formulaire ouvre la messagerie du visiteur vers `contact@carsitting.fr`, ce qui n'est qu'un repli : **un service d'envoi reste à choisir avant la mise en ligne.**
+**Envoi.** En production (Netlify), les formulaires passent par **Netlify Forms** : aucun service tiers, tout reste dans le compte Netlify de l'entreprise. Réglage dans `netlify.toml` (`PUBLIC_FORM_BACKEND = "netlify"`). Les demandes apparaissent dans Netlify > Forms (deux formulaires : `devis` et `partenaire`) ; pour les recevoir par e-mail : Netlify > Forms > Form notifications > Add notification > Email notification, avec l'adresse de réception.
 
-```bash
-# .env
-PUBLIC_FORM_ENDPOINT=https://formspree.io/f/xxxxxxxx
-```
+En développement local, sans cette variable, le formulaire ouvre la messagerie du visiteur vers `contact@carsitting.fr` (simple repli). On peut aussi viser un service externe avec `PUBLIC_FORM_ENDPOINT` (Formspree…), envoi en JSON.
 
 ## Métadonnées et partage
 
@@ -120,7 +117,7 @@ Une version de test tourne encore sur Vercel (`carsitting.vercel.app`) tant que 
 
 ## À faire
 
-- Choisir le service de réception des demandes (Formspree ou route Vercel + Resend).
+- Régler la notification e-mail des formulaires dans Netlify > Forms (voir « Envoi »).
 - Remplacer le monogramme « CS » de substitution par le fichier de logo officiel.
 - Remplacer les photos qui s'éloignent de la charte (lumière basse, gros plans sur le geste), notamment celle de l'hôtel.
 - Obtenir l'accord des maisons pour afficher leurs logos et les remplacer par les versions officielles (kit presse, ou Paris Society pour ses adresses).
