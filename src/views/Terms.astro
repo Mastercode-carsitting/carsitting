@@ -1,0 +1,461 @@
+---
+// Conditions générales de vente / Terms and conditions of sale — mise en page unique, textes en français et en anglais.
+// Source : PDF « Conditions Générales de Vente (CGV) — En vigueur à compter du 1er janvier 2024 » (texte repris fidèlement, aux couleurs de la charte).
+import Base from '../layouts/Base.astro';
+import Ornament from '../components/Ornament.astro';
+import { getLang } from '../i18n';
+
+const lang = getLang(Astro.url);
+
+type Block =
+  | { type: 'p'; html: string }
+  | { type: 'h3'; text: string }
+  | { type: 'ul'; items: string[] };
+
+type Section = {
+  num: string;
+  title: string;
+  blocks: Block[];
+};
+
+const mail = '<a href="mailto:contact@carsitting.fr" class="legal-link">contact@carsitting.fr</a>';
+const phoneWrong = '<a href="tel:+33783737445" class="legal-link">07.83.73.74.45</a>';
+const phone2 = '<a href="tel:+33783938318" class="legal-link">07.83.93.83.18</a>';
+const medMail = '<a href="mailto:contact@sasmediationsolution-conso.fr" class="legal-link [overflow-wrap:anywhere]">contact@sasmediationsolution-conso.fr</a>';
+const medUrl = '<a href="https://www.sasmediationsolution-conso.fr" target="_blank" rel="noopener noreferrer" class="legal-link [overflow-wrap:anywhere]">https://www.sasmediationsolution-conso.fr</a>';
+
+const copy: Record<'fr' | 'en', {
+  title: string;
+  description: string;
+  label: string;
+  h1: string;
+  effective: string;
+  toc: string;
+  note: string;
+  sections: Section[];
+}> = {
+  fr: {
+    title: 'Conditions générales de vente — CarSitting',
+    description: 'Conditions générales de vente (CGV) de CarSitting : prestations régulières et ponctuelles, tarifs, responsabilités, assurances, données personnelles et médiation.',
+    label: 'Conditions contractuelles',
+    h1: 'Conditions générales de vente',
+    effective: 'En vigueur à compter du 1er janvier 2024',
+    toc: 'Sommaire',
+    note: '',
+    sections: [
+      {
+        num: 'I',
+        title: 'Préambule',
+        blocks: [
+          { type: 'p', html: 'La société CARSITTING (ci-après dénommée « CARSITTING SAS » ou « Le Prestataire ») est une société par actions simplifiée (SAS) au capital de 3000€, immatriculée au Registre de Commerce et des Sociétés de Paris sous le numéro 812 982 619 et dont le siégé social est situé au 14 rue Charles V, 75004 PARIS, ayant le numéro individuel d’identification de TVA FR45812982619 et le code Naf 9609Z. CARSITTING SAS, est une société de conciergerie automobile qui offre principalement des prestations de service de voiturier, jockey, chauffeur, convoyage et des prestations d’entretien et de nettoyage de véhicules. Les présentes Conditions Générales de Vente ou « CGV » s’appliquent à toutes les prestations de service proposées et réalisées par CARSITTING SAS.' },
+          { type: 'p', html: 'Seront dénommés ci-après :' },
+          {
+            type: 'ul',
+            items: [
+              'Le « Bénéficiaire professionnel » : Personne physique ou morale ayant requis une ou plusieurs prestations de services auprès du Prestataire et qui agit à des fins entrant dans le cadre de son activité commerciale, industrielle, artisanale, libérale ou agricole, y compris lorsqu’elle agit au nom ou pour le compte d’un autre professionnel',
+              'Le « Bénéficiaire non professionnel » : Consommateur au sens du droit de la consommation, à savoir toute personne physique qui agit à des fins qui n’entrent pas dans le cadre de son activité commerciale, industrielle, artisanale, libérale ou agricole ;',
+              'Le « Bénéficiaire » : Indifféremment le Bénéficiaire professionnel et/ou le Bénéficiaire non professionnel.',
+              'Le « Client » : Tout visiteur, invité ou faisant partie de la clientèle du Bénéficiaire professionnel.',
+            ],
+          },
+        ],
+      },
+      {
+        num: 'II',
+        title: 'Objet et Validité de l’offre',
+        blocks: [
+          { type: 'p', html: 'Les présentes Conditions Générales de Ventes régissent les relations entre le Prestataire, le Bénéficiaire et le Client et précisent les conditions d’exécution des prestations de services proposées par le Prestataire. Le Bénéficiaire accepte ces conditions sans retenue et se porte fort de leur acceptation par le Client à la signature du devis et/ou de la proposition commerciale. Les présentes Conditions Générales de Vente figurent expressément sur le site www.carsitting.fr, ainsi le Prestataire s’engage à communiquer les présentes Conditions Générales de Vente à tout Bénéficiaire et Client qui en fait la demande.' },
+          { type: 'p', html: 'La durée de validité de l’offre est de 1 mois à compter de la date de remise de l’offre, à savoir un devis et/ou une proposition commerciale.' },
+          { type: 'p', html: 'Il ne peut être dérogé aux CGV que par un accord écrit.' },
+        ],
+      },
+      {
+        num: 'III',
+        title: 'Tarifications, Modalités de Règlement, Facturation & Pénalités de retard',
+        blocks: [
+          { type: 'h3', text: '3.1. Prestation régulière :' },
+          { type: 'p', html: 'La tarification fait l’objet d’un accord écrit entre le Prestataire et le Bénéficiaire et sera applicable durant les douze premiers mois de la relation commerciale. Les Parties conviennent que la tarification sera révisée automatiquement, annuellement, à la date anniversaire du contrat, telle que ladite tarification en année n+1 connaîtra une augmentation minimale de 2% par rapport à celle de l’année n.' },
+          { type: 'p', html: 'Le Bénéficiaire s’engage à payer la prestation par chèque à l’ordre de « CARSITTING », ou par virement bancaire, à la fin de chaque mois.' },
+          { type: 'p', html: 'Le règlement interviendra sur présentation d’une facture établie au nom du Bénéficiaire. Le Prestataire établira une facture en début de mois au nom du Bénéficiaire et lui enverra par email. Le Bénéficiaire peut, à sa demande, se voir remettre un exemplaire papier de la facture. Le délai de paiement est de 30 jours après émission de la facture.' },
+          { type: 'p', html: 'En cas de non-respect de l’une des conditions de paiement susmentionnés ou de litige relatif au paiement de la ou des prestations du ou des mois antérieur(s), le Prestataire se réserve le droit de suspendre ou d’annuler la fourniture du service et/ou de suspendre l’exécution de ses obligations.' },
+          { type: 'h3', text: '3.2. Prestation ponctuelle :' },
+          { type: 'p', html: 'Dans le cas d’une prestation ponctuelle de type événementiel, la tarification est généralement forfaitaire, sur la base d’une durée prédéfinie. Tout dépassement d’horaire sera facturé en sus par ½ h supplémentaire au prorata du tarif facturé pour la prestation initialement prévue. Le règlement s’effectuera par chèque, espèces ou virement à réception de la facture. Le délai maximal de paiement est de 30 jours à compter de la date d’exécution de la prestation. Dans le cas d’une prestation ponctuelle, un acompte de 30% devra être versé à la signature du devis et/ou de la proposition commerciale. En l’absence de versement d’acompte, la société CARSITTING se réserve le droit d’annuler la prestation.' },
+          { type: 'h3', text: '3.3. Pénalités de retard :' },
+          { type: 'p', html: 'En cas de défaut de paiement d’une facture échue, des pénalités de retard pourront s’appliquer. Le taux d’intérêt applicable sera égal au taux directeur en vigueur à la Banque Centrale européenne (BCE) au 1er janvier ou au 1er juillet de l’année civile concernée, majoré de 10 points.' },
+          { type: 'p', html: 'En complément des pénalités de retard, une indemnité d’un montant forfaitaire de 40 euros (sauf si le débiteur est en procédure collective) sera facturée.' },
+          { type: 'p', html: 'Une indemnisation complémentaire peut être présentée au débiteur lorsque les frais de recouvrement sont supérieurs à 40 euros, sur présentation du justificatif.' },
+        ],
+      },
+      {
+        num: 'IV',
+        title: 'Responsabilités et Garanties du Prestataire',
+        blocks: [
+          { type: 'p', html: 'En cas d’accident du véhicule lors de sa prise en charge par le voiturier du Prestataire, ce dernier effectuera les démarches de déclaration d’accident auprès de sa compagnie d’assurances et utilisera son service d’assistance.' },
+          { type: 'p', html: 'En cas de dommage causé par le voiturier du Prestataire dans l’exercice de ses fonctions, la responsabilité du Prestataire ne peut en aucun cas être engagée si :' },
+          {
+            type: 'ul',
+            items: [
+              'Le véhicule confié par le Client n’était pas, au moment du dommage, conforme aux exigences du code de la route (e.g. carte grise, contrôle technique, etc.) ;',
+              'Le Client a manqué de révéler au voiturier, au moment de la remise des clés, une information utile au bon fonctionnement du véhicule ou une ou plusieurs défaillances du même véhicule, et que ce défaut d’information a été la cause, partielle ou totale, directe ou indirecte, du dommage.',
+            ],
+          },
+          { type: 'p', html: 'Le Prestataire se dégage de toute responsabilité à l’égard des véhicules laissés à la charge du voiturier du Prestataire après la fermeture de l’établissement ou la fin de l’évènement ponctuel.' },
+          { type: 'p', html: 'La responsabilité du Prestataire ne pourra en aucun cas être engagée en cas de :' },
+          {
+            type: 'ul',
+            items: [
+              'Perte ou de vol d’effets et objets de valeur présents dans le véhicule.',
+              'Dommages, directs ou indirects, sur ces effets et objets de valeur.',
+              'Braquage du véhicule ou détérioration du véhicule par violence du fait d’un tiers.',
+            ],
+          },
+          { type: 'p', html: 'En cas de perte ou de vol des clés du véhicule entre le moment où elles ont été remises au voiturier et celui de leur restitution, le Prestataire s’engage à en avertir le Bénéficiaire et le Client propriétaire des clés perdues ou volées et prendra en charge les frais de remplacement desdites clés.' },
+          { type: 'p', html: 'En tout état de cause, le Prestataire ne pourra en aucun cas être tenu responsable d’un défaut d’exécution de l’une quelconque des obligations mises à sa charge au titre des présentes Conditions Générales de Vente, et/ou de tout préjudice direct ou indirect, résultant d’un cas de force majeure ou d’un cas fortuit tels que définis par les dispositions du code civil.' },
+        ],
+      },
+      {
+        num: 'V',
+        title: 'Obligations du Prestataire – Droit de rétractation',
+        blocks: [
+          { type: 'p', html: 'Pour l’accomplissement de ses diligences et prestations, le Prestataire s’engage à apporter ses meilleurs soins, conformément aux règles de l’art.' },
+          { type: 'p', html: 'Le Bénéficiaire détermine la prestation à accomplir, le Prestataire choisit le personnel nécessaire et les tâches à effectuer par chacun de ses salariés.' },
+          { type: 'p', html: 'Le Prestataire s’engage par ailleurs à l’égard du Bénéficiaire non professionnel à lui fournir l’ensemble des informations relatives aux prestations, tarifs et modalités d’exécution au plus tard à la remise d’un devis et/ou d’une proposition commerciale et en tout état de cause de la conclusion d’une convention dont l’objet est de définir les conditions et les modalités de la fourniture des prestations par le Prestataire.' },
+          { type: 'p', html: 'Le Bénéficiaire non professionnel, à l’exclusion du Bénéficiaire professionnel, a la faculté d’exercer son droit de rétractation dans un délai de quatorze jours à compter de l’accord écrit avec le Prestataire fixant les conditions et modalités de la ou des prestations convenues. Toutefois, si la prestation doit commencer avant l’expiration dudit délai de rétractation et/ou le Bénéficiaire non professionnel souhaite que le Prestataire exécute une ou plusieurs prestations avant l’expiration du délai, le Bénéficiaire non professionnel devra renoncer expressément au bénéfice de son droit de rétractation et en informer par tout moyen écrit le Prestataire.' },
+        ],
+      },
+      {
+        num: 'VI',
+        title: 'Obligations du Bénéficiaire et du Client',
+        blocks: [
+          { type: 'h3', text: 'Obligations du Bénéficiaire :' },
+          { type: 'p', html: 'Le Bénéficiaire tiendra à la disposition du Prestataire toutes les informations ou documents pouvant contribuer à la bonne réalisation de la prestation. A cette fin, le Bénéficiaire désignera un interlocuteur privilégié, pour assurer le dialogue pendant toute la durée de la prestation.' },
+          { type: 'p', html: 'Le Bénéficiaire se porte fort à l’égard du Prestataire du respect par les Clients des obligations mises à leur charge au titre des présentes Conditions Générales de Ventes.' },
+          { type: 'h3', text: 'Obligations du Client :' },
+          { type: 'p', html: 'Par la remise du ticket par le Prestataire, le Client accepte les présentes Conditions Générales de Ventes et, partant, l’ensemble des obligations mises à sa charge.' },
+          { type: 'p', html: 'Le Client devra révéler au voiturier du Prestataire, au moment de la remise des clés, toute information utile au bon fonctionnement du véhicule et/ou toute défaillance connue sur ce même véhicule.' },
+          { type: 'p', html: 'Le Client s’engage à remettre au voiturier du Prestataire son véhicule vidé de tous effets et objets de valeur.' },
+          { type: 'p', html: 'Dans le cas où la formule Access aurait été retenue par le Bénéficiaire, le Client devra s’acquitter de la somme de 10 € (prédéfinie contractuellement) à la restitution de son véhicule, ce dont le Bénéficiaire se porte fort.' },
+        ],
+      },
+      {
+        num: 'VII',
+        title: 'Durée d’Engagement d’une Prestation Régulière',
+        blocks: [
+          { type: 'p', html: 'Sauf convention contraire, toute Prestation Régulière prendra effet à compter de la date de signature du contrat ou de l’acceptation par le Bénéficiaire de l’offre commerciale du Prestataire et sera valable pour une durée indéterminée qui ne saurait toutefois être inférieure à douze mois.' },
+        ],
+      },
+      {
+        num: 'VIII',
+        title: 'Renouvellement – Modalités de Résiliation',
+        blocks: [
+          { type: 'h3', text: '8.1. Prestation régulière :' },
+          { type: 'p', html: 'Chacune des parties pourra mettre un terme au contrat liant le Prestataire au Bénéficiaire en notifiant à l’autre partie sa décision de ne pas renouveler ledit contrat, par lettre recommandée en respectant un délai de préavis d’au moins trois mois entre la date anniversaire du contrat et la date de première présentation dudit recommandé.' },
+          { type: 'h3', text: '8.2. Prestation ponctuelle :' },
+          { type: 'p', html: `Toute demande d’annulation d’une prestation par le Bénéficiaire doit être adressée au minimum 48 heures avant la date de la prestation soit par téléphone (${phoneWrong} / ${phone2}), soit par e-mail (${mail}).` },
+          { type: 'p', html: 'Le montant de l’acompte lui sera alors intégralement reversé. Dans le cas contraire, l’acompte sera conservé.' },
+        ],
+      },
+      {
+        num: 'IX',
+        title: 'Police d’Assurance',
+        blocks: [
+          { type: 'p', html: 'Le Prestataire s’engage à souscrire un contrat d’assurance avec la société Covea Fleet, sise au 160 Rue Henri Champion, 72100 – Le Mans.' },
+          { type: 'p', html: 'Ce contrat d’assurance couvre le Prestataire à hauteur de 1 800 000 € pour les dommages matériels et à hauteur de 8 000 000 € pour les dommages corporels.' },
+          { type: 'p', html: 'Le Prestataire s’engage à fournir, à la demande du Bénéficiaire ou d’un Client, une copie de l’attestation d’assurance, sur simple demande.' },
+        ],
+      },
+      {
+        num: 'X',
+        title: 'Non Sollicitation du Personnel',
+        blocks: [
+          { type: 'p', html: 'Chacune des Parties s’interdit expressément de solliciter en vue d’une embauche ou d’embaucher directement ou indirectement tout collaborateur de l’autre partie, qu’il soit salarié ou non, même si la sollicitation initiale est formulée par le collaborateur. Chacune des Parties se porte fort de l’application de cette interdiction aux autres sociétés du Groupe auquel elle appartient. La présente interdiction s’applique pendant toute la durée de la relation commerciale et pendant les douze (12) mois qui suivront sa cessation, pour quelque cause qu’elle survienne.' },
+          { type: 'p', html: 'En cas d’infraction à la présente interdiction, la partie défaillante sera tenue de payer immédiatement à l’autre partie, à titre de clause pénale, une indemnité forfaitaire d’un montant égal à douze (12) mois du dernier salaire brut mensuel de la personne sollicitée ou embauchée, majorée de tous les frais de recrutement d’un remplaçant.' },
+        ],
+      },
+      {
+        num: 'XI',
+        title: 'Référencement',
+        blocks: [
+          { type: 'p', html: 'Le Bénéficiaire professionnel accepte que le Prestataire fasse figurer parmi ses références les prestations accomplies pour son compte.' },
+        ],
+      },
+      {
+        num: 'XII',
+        title: 'Données personnelles',
+        blocks: [
+          { type: 'p', html: `Pour les besoins de son activité, le Prestataire est contraint de collecter des données personnelles des Clients et/ou du Bénéficiaire non professionnel et/ou du personnel du Bénéficiaire professionnel. A cet égard, le Prestataire s’engage à respecter les dispositions du Règlement Général sur la Protection des Données (RGPD) dans le traitement des données à caractère personnel. Le Prestataire garantit que toutes les données collectées seront traitées de manière licite, loyale et transparente, et ne seront utilisées que dans le cadre des finalités spécifiques pour lesquelles elles ont été collectées. De plus, le Prestataire s’engage à mettre en œuvre les mesures techniques et organisationnelles appropriées pour garantir un niveau de sécurité adéquat afin de protéger les données à caractère personnel contre tout accès non autorisé, divulgation, altération ou destruction. Les Clients et/ou du Bénéficiaire non professionnel et/ou les membres du personnel du Bénéficiaire professionnel ont le droit d’accéder à leurs données à caractère personnel, de les rectifier, de les supprimer ou de s’opposer à leur traitement, conformément aux dispositions du RGPD en contactant simplement le Prestataire sur l’adresse email suivante : ${mail}. Le Prestataire s’engage à informer ces derniers de manière claire et transparente sur la manière dont leurs données sont collectées, utilisées et conservées, ainsi que sur leurs droits en matière de protection des données. En acceptant les présentes conditions, les Bénéficiaires reconnaissent avoir pris connaissance de la politique de confidentialité du Prestataire et consentent au traitement de leurs données à caractère personnel conformément aux dispositions du RGPD et se portent fort de l’acceptation par les Clients au traitement de leurs données personnelles.` },
+        ],
+      },
+      {
+        num: 'XIII',
+        title: 'Litiges – Médiation',
+        blocks: [
+          { type: 'p', html: 'Conformément à l’article L. 612-1 du Code de la consommation, le Client et/ou le Bénéficiaire non professionnel a la faculté d’introduire une demande de résolution amiable par voie de médiation de sa réclamation écrite auprès du professionnel.' },
+          { type: 'p', html: 'CARSITTING a désigné, par adhésion enregistrée sous le numéro 52197/VM/2401 la SAS Médiation Solution comme entité de médiation de la consommation.' },
+          { type: 'p', html: 'Pour saisir le médiateur, le Client et/ou le Bénéficiaire non professionnel doit formuler sa demande :' },
+          {
+            type: 'ul',
+            items: [
+              'Soit par écrit à : Sas Médiation Solution - 222 chemin de la bergerie 01800 Saint Jean de Niost',
+              `Soit par mail à : ${medMail}`,
+              `Soit en remplissant le formulaire en ligne intitulé « Saisir le médiateur » sur le site ${medUrl}`,
+            ],
+          },
+          { type: 'p', html: 'Quel que soit le moyen de saisine utilisé, la demande doit impérativement contenir :' },
+          {
+            type: 'ul',
+            items: [
+              'Les coordonnées postales, téléphoniques et électroniques du demandeur,',
+              'Le nom, l’adresse et le numéro d’enregistrement chez Sas Médiation Solution, du professionnel concerné,',
+              'Un exposé succinct des faits,',
+              'Copie de la réclamation préalable,',
+              'Tous documents permettant l’instruction de la demande (bon de commande, facture, justificatif de paiement, etc.)',
+            ],
+          },
+          { type: 'p', html: 'En tout état de cause, toute réclamation n’est recevable que dans les 8 jours après la fin de l’exécution de la prestation concernée.' },
+          { type: 'p', html: 'Les présentes Conditions Générales de Vente sont soumises uniquement au droit français. Tout litige, de quelque nature que ce soit, relatif à la réalisation de la prestation, sera à défaut d’accord amiable de la compétence exclusive du Tribunal de Commerce de Paris.' },
+        ],
+      },
+    ],
+  },
+  en: {
+    title: 'Terms and conditions of sale — CarSitting',
+    description: 'General terms and conditions of sale of CarSitting: regular and one-off services, pricing, liability, insurance, personal data and mediation.',
+    label: 'Contractual terms',
+    h1: 'Terms and conditions of sale',
+    effective: 'Effective as of 1 January 2024',
+    toc: 'Contents',
+    note: 'This English version is provided for convenience. In case of discrepancy, the French version prevails.',
+    sections: [
+      {
+        num: 'I',
+        title: 'Preamble',
+        blocks: [
+          { type: 'p', html: 'CARSITTING (hereinafter referred to as “CARSITTING SAS” or “the Service Provider”) is a French simplified joint-stock company (SAS) with a share capital of €3,000, registered with the Paris Trade and Companies Register under number 812 982 619, whose registered office is located at 14 rue Charles V, 75004 PARIS, France, with individual VAT identification number FR45812982619 and NAF code 9609Z. CARSITTING SAS is an automotive concierge company that primarily offers valet, jockey, chauffeur, vehicle transfer, and vehicle maintenance and cleaning services. These General Terms and Conditions of Sale (“GTCS”) apply to all services offered and performed by CARSITTING SAS.' },
+          { type: 'p', html: 'Hereinafter referred to as:' },
+          {
+            type: 'ul',
+            items: [
+              '“Professional Beneficiary”: Any natural or legal person having requested one or more services from the Service Provider and acting for purposes within the scope of their commercial, industrial, craft, liberal or agricultural activity, including when acting in the name or on behalf of another professional.',
+              '“Non-Professional Beneficiary”: A consumer within the meaning of consumer law, namely any natural person acting for purposes outside the scope of their commercial, industrial, craft, liberal or agricultural activity;',
+              '“Beneficiary”: Indifferently the Professional Beneficiary and/or the Non-Professional Beneficiary.',
+              '“Client”: Any visitor, guest or member of the clientele of the Professional Beneficiary.',
+            ],
+          },
+        ],
+      },
+      {
+        num: 'II',
+        title: 'Purpose and Validity of the Offer',
+        blocks: [
+          { type: 'p', html: 'These General Terms and Conditions of Sale govern the relationship between the Service Provider, the Beneficiary and the Client and specify the conditions of performance of the services offered by the Service Provider. The Beneficiary accepts these conditions without reservation and guarantees their acceptance by the Client upon signing the quote and/or commercial proposal. These General Terms and Conditions of Sale are expressly published on www.carsitting.fr, and the Service Provider undertakes to provide these General Terms and Conditions of Sale to any Beneficiary and Client upon request.' },
+          { type: 'p', html: 'The validity period of the offer is 1 month from the date of delivery of the offer, namely a quote and/or a commercial proposal.' },
+          { type: 'p', html: 'Any derogation from the GTCS requires a written agreement.' },
+        ],
+      },
+      {
+        num: 'III',
+        title: 'Pricing, Payment Terms, Invoicing & Late Payment Penalties',
+        blocks: [
+          { type: 'h3', text: '3.1. Regular service:' },
+          { type: 'p', html: 'Pricing is subject to a written agreement between the Service Provider and the Beneficiary and applies for the first twelve months of the commercial relationship. The Parties agree that pricing shall be automatically revised annually on the contract anniversary date, such that the pricing in year n+1 shall increase by at least 2% compared to year n.' },
+          { type: 'p', html: 'The Beneficiary undertakes to pay for the service by cheque payable to “CARSITTING”, or by bank transfer, at the end of each month.' },
+          { type: 'p', html: 'Payment shall be made upon presentation of an invoice issued in the name of the Beneficiary. The Service Provider shall issue an invoice at the beginning of the month in the name of the Beneficiary and send it by email. Upon request, the Beneficiary may receive a paper copy of the invoice. The payment term is 30 days from invoice issuance.' },
+          { type: 'p', html: 'In the event of non-compliance with any of the aforementioned payment conditions or a dispute relating to payment for services from previous month(s), the Service Provider reserves the right to suspend or cancel the provision of the service and/or suspend performance of its obligations.' },
+          { type: 'h3', text: '3.2. One-off service:' },
+          { type: 'p', html: 'In the case of a one-off event-type service, pricing is generally a flat fee based on a predefined duration. Any overtime shall be billed additionally in ½-hour increments pro rata to the rate billed for the initially planned service. Payment shall be made by cheque, cash or bank transfer upon receipt of the invoice. The maximum payment term is 30 days from the date of performance of the service. In the case of a one-off service, a 30% deposit must be paid upon signing the quote and/or commercial proposal. Failing payment of the deposit, CARSITTING reserves the right to cancel the service.' },
+          { type: 'h3', text: '3.3. Late payment penalties:' },
+          { type: 'p', html: 'In the event of late payment of a due invoice, late payment penalties may apply. The applicable interest rate shall be equal to the key interest rate in force at the European Central Bank (ECB) on 1 January or 1 July of the relevant calendar year, plus 10 percentage points.' },
+          { type: 'p', html: 'In addition to late payment penalties, a fixed recovery fee of €40 (unless the debtor is in collective insolvency proceedings) shall be invoiced.' },
+          { type: 'p', html: 'Additional compensation may be claimed from the debtor where recovery costs exceed €40, upon presentation of supporting documents.' },
+        ],
+      },
+      {
+        num: 'IV',
+        title: 'Liability and Warranties of the Service Provider',
+        blocks: [
+          { type: 'p', html: 'In the event of a vehicle accident while in the care of the Service Provider’s valet, the Service Provider shall file the accident report with its insurance company and use its assistance service.' },
+          { type: 'p', html: 'In the event of damage caused by the Service Provider’s valet in the performance of their duties, the Service Provider’s liability may in no case be incurred if:' },
+          {
+            type: 'ul',
+            items: [
+              'The vehicle entrusted by the Client was not, at the time of the damage, compliant with road traffic regulations (e.g. registration certificate, roadworthiness test, etc.);',
+              'The Client failed to disclose to the valet, when handing over the keys, information useful for the proper operation of the vehicle or one or more defects of the vehicle, and such failure to inform was the partial or total, direct or indirect cause of the damage.',
+            ],
+          },
+          { type: 'p', html: 'The Service Provider disclaims all liability with respect to vehicles left in the care of the Service Provider’s valet after the closing of the establishment or the end of the one-off event.' },
+          { type: 'p', html: 'The Service Provider’s liability may in no case be incurred in the event of:' },
+          {
+            type: 'ul',
+            items: [
+              'Loss or theft of personal belongings and valuables inside the vehicle.',
+              'Direct or indirect damage to such personal belongings and valuables.',
+              'Carjacking or damage to the vehicle caused by third-party violence.',
+            ],
+          },
+          { type: 'p', html: 'In the event of loss or theft of the vehicle keys between the time they were handed over to the valet and the time of their return, the Service Provider undertakes to notify the Beneficiary and the Client owning the lost or stolen keys and shall bear the cost of replacing said keys.' },
+          { type: 'p', html: 'In any event, the Service Provider shall in no case be held liable for any failure to perform any of its obligations under these General Terms and Conditions of Sale, and/or for any direct or indirect loss resulting from a case of force majeure or a fortuitous event as defined by the French Civil Code.' },
+        ],
+      },
+      {
+        num: 'V',
+        title: 'Obligations of the Service Provider – Right of Withdrawal',
+        blocks: [
+          { type: 'p', html: 'In carrying out its duties and services, the Service Provider undertakes to exercise all due care in accordance with best industry practices.' },
+          { type: 'p', html: 'The Beneficiary determines the service to be performed; the Service Provider selects the necessary staff and the tasks to be carried out by each of its employees.' },
+          { type: 'p', html: 'The Service Provider further undertakes towards the Non-Professional Beneficiary to provide all information relating to the services, pricing and terms of performance no later than upon delivery of a quote and/or commercial proposal and in any event prior to the conclusion of an agreement defining the conditions and terms of the provision of services by the Service Provider.' },
+          { type: 'p', html: 'The Non-Professional Beneficiary, excluding the Professional Beneficiary, has the right to exercise their right of withdrawal within fourteen days from the written agreement with the Service Provider setting out the conditions and terms of the agreed service(s). However, if the service is to begin before the expiry of said withdrawal period and/or the Non-Professional Beneficiary wishes the Service Provider to perform one or more services before the expiry of the period, the Non-Professional Beneficiary must expressly waive the benefit of their right of withdrawal and inform the Service Provider by any written means.' },
+        ],
+      },
+      {
+        num: 'VI',
+        title: 'Obligations of the Beneficiary and the Client',
+        blocks: [
+          { type: 'h3', text: 'Obligations of the Beneficiary:' },
+          { type: 'p', html: 'The Beneficiary shall make available to the Service Provider all information or documents that may contribute to the proper performance of the service. To this end, the Beneficiary shall designate a dedicated point of contact to ensure communication throughout the duration of the service.' },
+          { type: 'p', html: 'The Beneficiary guarantees to the Service Provider compliance by Clients with the obligations incumbent upon them under these General Terms and Conditions of Sale.' },
+          { type: 'h3', text: 'Obligations of the Client:' },
+          { type: 'p', html: 'Upon receiving the valet ticket from the Service Provider, the Client accepts these General Terms and Conditions of Sale and, consequently, all obligations incumbent upon them.' },
+          { type: 'p', html: 'The Client must disclose to the Service Provider’s valet, when handing over the keys, any information useful for the proper operation of the vehicle and/or any known defect of said vehicle.' },
+          { type: 'p', html: 'The Client undertakes to hand over to the Service Provider’s valet their vehicle emptied of all personal belongings and valuables.' },
+          { type: 'p', html: 'Where the Access formula has been selected by the Beneficiary, the Client shall pay the sum of €10 (contractually predefined) upon return of their vehicle, which the Beneficiary guarantees.' },
+        ],
+      },
+      {
+        num: 'VII',
+        title: 'Term of Commitment for a Regular Service',
+        blocks: [
+          { type: 'p', html: 'Unless otherwise agreed, any Regular Service shall take effect from the date of signature of the contract or acceptance by the Beneficiary of the Service Provider’s commercial offer and shall remain valid for an indefinite duration which may not, however, be less than twelve months.' },
+        ],
+      },
+      {
+        num: 'VIII',
+        title: 'Renewal – Termination Terms',
+        blocks: [
+          { type: 'h3', text: '8.1. Regular service:' },
+          { type: 'p', html: 'Either party may terminate the contract binding the Service Provider and the Beneficiary by notifying the other party of its decision not to renew said contract, by registered letter, observing a notice period of at least three months between the contract anniversary date and the date of first presentation of said registered letter.' },
+          { type: 'h3', text: '8.2. One-off service:' },
+          { type: 'p', html: `Any request by the Beneficiary to cancel a service must be sent at least 48 hours before the date of the service either by telephone (${phoneWrong} / ${phone2}) or by email (${mail}).` },
+          { type: 'p', html: 'The deposit amount will then be refunded in full. Otherwise, the deposit will be retained.' },
+        ],
+      },
+      {
+        num: 'IX',
+        title: 'Insurance Policy',
+        blocks: [
+          { type: 'p', html: 'The Service Provider undertakes to take out an insurance policy with Covea Fleet, located at 160 Rue Henri Champion, 72100 – Le Mans, France.' },
+          { type: 'p', html: 'This insurance policy covers the Service Provider up to €1,800,000 for property damage and up to €8,000,000 for bodily injury.' },
+          { type: 'p', html: 'The Service Provider undertakes to provide, at the request of the Beneficiary or a Client, a copy of the insurance certificate upon simple request.' },
+        ],
+      },
+      {
+        num: 'X',
+        title: 'Non-Solicitation of Staff',
+        blocks: [
+          { type: 'p', html: 'Each Party expressly refrains from soliciting for employment or hiring, directly or indirectly, any employee or collaborator of the other party, whether salaried or not, even if the initial solicitation is made by the collaborator. Each Party guarantees the application of this prohibition to the other companies of the Group to which it belongs. This prohibition applies throughout the duration of the commercial relationship and for twelve (12) months following its termination, for whatever reason.' },
+          { type: 'p', html: 'In the event of a breach of this prohibition, the defaulting party shall be required to pay immediately to the other party, as a penalty clause, a lump-sum indemnity equal to twelve (12) months of the last gross monthly salary of the person solicited or hired, plus all recruitment costs for a replacement.' },
+        ],
+      },
+      {
+        num: 'XI',
+        title: 'Commercial References',
+        blocks: [
+          { type: 'p', html: 'The Professional Beneficiary agrees that the Service Provider may include the services performed on its behalf among its commercial references.' },
+        ],
+      },
+      {
+        num: 'XII',
+        title: 'Personal Data',
+        blocks: [
+          { type: 'p', html: `For the purposes of its business, the Service Provider is required to collect personal data of Clients and/or the Non-Professional Beneficiary and/or the staff of the Professional Beneficiary. In this respect, the Service Provider undertakes to comply with the provisions of the General Data Protection Regulation (GDPR) in the processing of personal data. The Service Provider guarantees that all data collected will be processed lawfully, fairly and transparently, and will only be used for the specific purposes for which it was collected. In addition, the Service Provider undertakes to implement appropriate technical and organisational measures to ensure an adequate level of security to protect personal data against unauthorised access, disclosure, alteration or destruction. Clients and/or the Non-Professional Beneficiary and/or members of the staff of the Professional Beneficiary have the right to access, rectify, erase or object to the processing of their personal data, in accordance with the GDPR, simply by contacting the Service Provider at the following email address: ${mail}. The Service Provider undertakes to inform them clearly and transparently about how their data is collected, used and stored, as well as their data protection rights. By accepting these terms, Beneficiaries acknowledge having read the Service Provider’s privacy policy, consent to the processing of their personal data in accordance with the GDPR, and guarantee acceptance by Clients of the processing of their personal data.` },
+        ],
+      },
+      {
+        num: 'XIII',
+        title: 'Disputes – Mediation',
+        blocks: [
+          { type: 'p', html: 'In accordance with Article L. 612-1 of the French Consumer Code, the Client and/or the Non-Professional Beneficiary has the right to submit a request for amicable resolution by mediation regarding a written complaint addressed to the professional.' },
+          { type: 'p', html: 'CARSITTING has designated, under registration number 52197/VM/2401, SAS Médiation Solution as its consumer mediation entity.' },
+          { type: 'p', html: 'To refer a matter to the mediator, the Client and/or Non-Professional Beneficiary must submit their request:' },
+          {
+            type: 'ul',
+            items: [
+              'In writing to: Sas Médiation Solution - 222 chemin de la bergerie 01800 Saint Jean de Niost',
+              `By email to: ${medMail}`,
+              `Or by completing the online form entitled “Saisir le médiateur” on ${medUrl}`,
+            ],
+          },
+          { type: 'p', html: 'Regardless of the method used, the request must include:' },
+          {
+            type: 'ul',
+            items: [
+              'The applicant’s postal, telephone and email contact details,',
+              'The name, address and registration number with Sas Médiation Solution of the professional concerned,',
+              'A brief statement of the facts,',
+              'A copy of the prior complaint,',
+              'All documents enabling the review of the request (purchase order, invoice, proof of payment, etc.)',
+            ],
+          },
+          { type: 'p', html: 'In any event, any complaint is only admissible within 8 days after completion of the service concerned.' },
+          { type: 'p', html: 'These General Terms and Conditions of Sale are governed solely by French law. Any dispute of any nature whatsoever relating to the performance of the service shall, failing amicable agreement, fall under the exclusive jurisdiction of the Paris Commercial Court (Tribunal de Commerce de Paris).' },
+        ],
+      },
+    ],
+  },
+}[lang];
+---
+<Base title={copy.title} description={copy.description}>
+  {/* Ouverture sobre : pas de photo, un titre et l'ornement de la charte. data-hero pour l'apparition en douceur. */}
+  <section data-hero class="s-nuit px-6 pb-16 pt-36 text-center md:pb-24 md:pt-48">
+    <p class="label hero-reveal mb-8">{copy.label}</p>
+    <h1 class="display hero-reveal">{copy.h1}</h1>
+    <p class="hero-reveal mt-6 font-serif text-xl italic text-ivoire-muted">{copy.effective}</p>
+    <div class="hero-reveal"><Ornament /></div>
+  </section>
+
+  <section class="s-ivoire px-6 py-16 md:py-24">
+    <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-12 lg:gap-16">
+      {/* Sommaire : visible à partir de 1024 px, il reste à l'écran pendant la lecture. */}
+      <nav class="hidden lg:col-span-3 lg:block" aria-label={copy.toc}>
+        <div class="sticky top-32">
+          <p class="label mb-6">{copy.toc}</p>
+          <ol class="space-y-3 border-l border-or/35 pl-6">
+            {copy.sections.map((s, i) => (
+              <li><a href={`#section-${i + 1}`} class="legal-toc"><span class="mr-3 font-serif italic text-or">{s.num}</span>{s.title}</a></li>
+            ))}
+          </ol>
+        </div>
+      </nav>
+
+      <div class="lg:col-span-9 min-w-0">
+        {copy.note && <p class="mb-10 border-l border-or/35 pl-6 text-sm italic text-ivoire-muted">{copy.note}</p>}
+
+        <div class="space-y-16 md:space-y-20">
+          {copy.sections.map((s, i) => (
+            <article id={`section-${i + 1}`} class="scroll-mt-32">
+              <div class="flex items-baseline gap-5">
+                <span class="font-serif text-4xl font-light italic text-or">{s.num}</span>
+                <h2 class="font-serif text-[28px] font-normal leading-tight text-nuit md:text-[34px]">{s.title}</h2>
+              </div>
+              <div class="mt-8 space-y-5 text-[17px] leading-[1.8] text-ivoire-muted md:pl-[3.25rem]">
+                {s.blocks.map((block) => {
+                  if (block.type === 'h3') {
+                    return <h3 class="pt-3 font-serif text-2xl font-normal text-nuit">{block.text}</h3>;
+                  }
+                  if (block.type === 'ul') {
+                    return (
+                      <ul class="list-disc space-y-2.5 pl-6 marker:text-or">
+                        {block.items.map((item) => <li set:html={item} />)}
+                      </ul>
+                    );
+                  }
+                  return <p set:html={block.html} />;
+                })}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
