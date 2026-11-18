@@ -1,62 +1,45 @@
-// Netlify appelle cette fonction à chaque envoi d'un formulaire du site (nom spécial « submission-created »).
-// Elle envoie un mail à la charte à l'équipe et un accusé de réception au visiteur, par le serveur d'envoi de la
-// boîte du domaine (LWS). Si l'envoi échoue, la demande reste enregistrée dans Netlify > Forms : rien n'est perdu.
+// Netlify appelle cette fonction à chaque envoi d'un formulaire Netlify Forms du site (nom spécial « submission-created ») :
+// devis et partenariat. Elle envoie un mail à la charte à l'équipe et un accusé de réception au visiteur.
+// Si l'envoi échoue, la demande reste enregistrée dans Netlify > Forms : rien n'est perdu.
 //
-// Variables à définir dans Netlify (Project configuration > Environment variables). Jamais dans le code :
-//   SMTP_HOST   serveur d'envoi (ex. mail.carsitting.fr)
-//   SMTP_PORT   465 (SSL) par défaut
-//   SMTP_USER   adresse de la boîte qui envoie (ex. une boîte dédiée site@carsitting.fr, créée chez LWS)
-//   SMTP_PASS   mot de passe de cette boîte
-//   MAIL_TO     adresse qui reçoit les demandes et qui reçoit les réponses des visiteurs (ex. contact@carsitting.fr)
-//   MAIL_TO_RECRUTEMENT  adresse qui reçoit les candidatures (par défaut : recrutement@carsitting.fr)
-//   MAIL_FROM_NAME  nom affiché (par défaut : CarSitting)
-import nodemailer from 'nodemailer';
-import { teamMail, visitorMail, isEmail, oneLine } from './lib/mail-templates.mjs';
+// Les candidatures ne passent PAS par ici : elles vont directement à la fonction « candidature » (avec le CV), sans rien
+// stocker chez Netlify. Variables d'environnement : voir lib/mailer.mjs.
+import { teamMail, visitorMail, isEmail } from './lib/mail-templates.mjs';
+import { mailContext } from './lib/mailer.mjs';
 
-export const handler = async (event) => {
-  let payload;
-  try {
-    payload = JSON.parse(event.body || '{}').payload;
-  } catch {
-    return { statusCode: 400, body: 'Corps invalide' };
-  }
-  if (!payload || !['devis', 'partenaire', 'recrutement'].includes(payload.form_name)) return { statusCode: 200, body: 'Formulaire ignoré' };
+const FORMS = ['devis', 'partenaire'];
 
-  const { SMTP_HOST, SMTP_PORT = '465', SMTP_USER, SMTP_PASS, MAIL_TO: MAIL_TO_DEFAULT, MAIL_TO_RECRUTEMENT = 'recrutement@carsitting.fr', MAIL_FROM_NAME = 'CarSitting' } = process.env;
-  // Les candidatures vont à l'adresse dédiée au recrutement ; les devis et partenariats à l'adresse de réception habituelle.
-  const MAIL_TO = payload.form_name === 'recrutement' ? MAIL_TO_RECRUTEMENT : MAIL_TO_DEFAULT;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    console.error('Variables SMTP manquantes : aucun mail envoyé (la demande reste dans Netlify > Forms).');
-    return { statusCode: 200, body: 'SMTP non configuré' };
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-  const from = `"${oneLine(MAIL_FROM_NAME).replace(/"/g, '')}" <${SMTP_USER}>`;
-  const visitor = payload.data?.Email;
-
-  try {
-    const team = teamMail(payload);
-    await transporter.sendMail({
-      from,
-      to: MAIL_TO || SMTP_USER,
-      replyTo: isEmail(visitor) ? visitor.trim() : undefined,
-      subject: team.subject,
-      html: team.html,
-      text: team.text,
-    });
-    // Accusé de réception : seulement si l'adresse du visiteur est valide ; un échec ici ne bloque pas le reste.
-    if (isEmail(visitor)) {
-      const ack = visitorMail(payload);
-      await transporter.sendMail({ from, to: visitor.trim(), replyTo: MAIL_TO || SMTP_USER, subject: ack.subject, html: ack.html, text: ack.text }).catch((e) => console.error('Accusé non envoyé :', e.message));
+export function makeHandler(deps = {}) {
+  return async (event) => {
+    let payload;
+    try {
+      payload = JSON.parse(event.body || '{}').payload;
+    } catch {
+      return { statusCode: 400, body: 'Corps invalide' };
     }
-    return { statusCode: 200, body: 'Mails envoyés' };
-  } catch (e) {
-    console.error('Envoi impossible :', e.message);
-    return { statusCode: 500, body: 'Envoi impossible' };
-  }
-};
+    if (!payload || !FORMS.includes(payload.form_name)) return { statusCode: 200, body: 'Formulaire ignoré' };
+
+    const mail = mailContext(deps.env || process.env, payload.form_name, deps.createTransport);
+    if (!mail) {
+      console.error('Variables SMTP manquantes : aucun mail envoyé (la demande reste dans Netlify > Forms).');
+      return { statusCode: 200, body: 'SMTP non configuré' };
+    }
+
+    const visitor = payload.data?.Email;
+    try {
+      const team = teamMail(payload);
+      await mail.sendToTeam({ replyTo: isEmail(visitor) ? visitor.trim() : undefined, subject: team.subject, html: team.html, text: team.text });
+      // Accusé de réception : seulement si l'adresse du visiteur est valide ; un échec ici ne bloque pas le reste.
+      if (isEmail(visitor)) {
+        const ack = visitorMail(payload);
+        await mail.sendToVisitor(visitor.trim(), { subject: ack.subject, html: ack.html, text: ack.text }).catch((e) => console.error('Accusé non envoyé :', e.message));
+      }
+      return { statusCode: 200, body: 'Mails envoyés' };
+    } catch (e) {
+      console.error('Envoi impossible :', e.message);
+      return { statusCode: 500, body: 'Envoi impossible' };
+    }
+  };
+}
+
+export const handler = makeHandler();

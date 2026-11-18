@@ -33,7 +33,8 @@ export function fieldsOf(payload) {
   const ordered = Array.isArray(payload?.ordered_human_fields)
     ? payload.ordered_human_fields.map((f) => [f.title || f.name, f.value, f.name])
     : Object.entries(payload?.data || {}).map(([k, v]) => [k, v, k]);
-  return ordered.filter(([, v, name]) => v !== '' && v != null && !HIDDEN.has(name));
+  // Un fichier déposé (objet { url, filename… }) n'est pas un champ de texte : il apparaît dans les pièces jointes.
+  return ordered.filter(([, v, name]) => v !== '' && v != null && typeof v !== 'object' && !HIDDEN.has(name));
 }
 
 export const isEnglish = (payload) => /^anglais/i.test(String(payload?.data?.['Langue du visiteur'] || ''));
@@ -57,7 +58,8 @@ const wrap = (inner, preheader) => `<!doctype html>
 </td></tr></table></body></html>`;
 
 /** Mail pour l'équipe : la demande, lisible d'un coup d'œil. */
-export function teamMail(payload) {
+/** `opts.attached` : noms des fichiers joints au mail ; `opts.missing` : un fichier n'a pas pu être joint. */
+export function teamMail(payload, opts = {}) {
   const d = payload?.data || {};
   const english = isEnglish(payload);
   const kind = { partenaire: 'Devenir partenaire', recrutement: 'Candidature voiturier' }[payload?.form_name] || 'Demande de devis';
@@ -69,6 +71,10 @@ export function teamMail(payload) {
       </td></tr>`,
     )
     .join('');
+  const attached = opts.attached || [];
+  const attachedBlock = attached.length || opts.missing
+    ? `<tr><td style="padding:6px 36px 0;"><div style="margin-top:8px;padding:12px 14px;background:${IVOIRE};border-left:3px solid ${OR};font-family:${SANS};font-size:13px;line-height:1.6;color:${ENCRE};">${attached.length ? `<b>CV joint à ce mail :</b> ${attached.map(esc).join(', ')}` : ''}${opts.missing ? `${attached.length ? '<br>' : ''}<b style="color:#9b2c2c;">Le CV n'a pas pu être joint automatiquement.</b> La candidature est conservée dans Netlify (Forms) : le fichier s'y trouve.` : ''}</div></td></tr>`
+    : '';
   const who = oneLine(d['Nom et prénom'] || d['Établissement'] || [d['Prénom'], d['Nom']].filter(Boolean).join(' ') || d['Email'] || '');
   const inner = `<tr><td style="padding:34px 36px 10px;">
       <div style="font-family:${SANS};font-size:10px;letter-spacing:3px;text-transform:uppercase;color:${OR};">Nouvelle demande · carsitting.fr</div>
@@ -77,12 +83,13 @@ export function teamMail(payload) {
       ${english ? `<p style="margin:14px 0 0;padding:8px 12px;background:${IVOIRE};border-left:3px solid ${OR};font-family:${SANS};font-size:13px;color:${ENCRE};">Visiteur de la version anglaise : répondre en anglais.</p>` : ''}
     </td></tr>
     <tr><td style="padding:6px 36px 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table></td></tr>
+    ${attachedBlock}
     <tr><td style="padding:16px 36px 34px;font-family:${SANS};font-size:13px;line-height:1.6;color:#6B6B6B;">
       ${isEmail(d['Email']) ? `Répondez directement à ce mail : la réponse part vers <b style="color:${NUIT};">${esc(d['Email'])}</b>.` : ''}
     </td></tr>`;
   const text =
     `${kind}${who ? ' — ' + who : ''}\n${english ? '(Visiteur anglophone : répondre en anglais)\n' : ''}\n` +
-    fieldsOf(payload).map(([l, v]) => `${l} : ${v}`).join('\n') + '\n';
+    fieldsOf(payload).map(([l, v]) => `${l} : ${v}`).join('\n') + '\n' + (attached.length ? `\nCV joint : ${attached.join(', ')}\n` : '') + (opts.missing ? "\nLe CV n'a pas pu être joint automatiquement : voir Netlify > Forms.\n" : '');
   return { subject: oneLine(d.subject) || `${kind}${who ? ' — ' + who : ''}`, html: wrap(inner, `${kind} · ${who}`), text };
 }
 
@@ -97,7 +104,7 @@ export function visitorMail(payload) {
         label: recruit ? 'Application' : partner ? 'Partnership' : 'Quote request',
         title: 'Thank you.',
         body: recruit
-          ? 'Your application has been received. To complete it, simply reply to this email attaching your CV (PDF). We read every application carefully and will come back to you if your profile fits. Your details are kept for 2 years at most.'
+          ? 'Your application and CV have been received. We read every application carefully and will come back to you if your profile fits. Your details are kept for 2 years at most.'
           : 'Your request has been received. We will reply within two working days, with a clear proposal and no obligation.',
         sign: 'The CarSitting team',
         lang: 'en',
@@ -107,7 +114,7 @@ export function visitorMail(payload) {
         label: recruit ? 'Candidature' : partner ? 'Partenariat' : 'Demande de devis',
         title: 'Merci.',
         body: recruit
-          ? 'Votre candidature a bien été reçue. Pour la compléter, répondez simplement à ce mail en joignant votre CV (PDF). Nous lisons chaque candidature avec attention et revenons vers vous si votre profil correspond. Vos informations sont conservées 2 ans au maximum.'
+          ? 'Votre candidature et votre CV ont bien été reçus. Nous lisons chaque candidature avec attention et revenons vers vous si votre profil correspond. Vos informations sont conservées 2 ans au maximum.'
           : 'Votre demande a bien été reçue. Nous vous répondons sous quarante-huit heures ouvrées, avec une proposition précise et sans engagement.',
         sign: "L'équipe CarSitting",
         lang: 'fr',

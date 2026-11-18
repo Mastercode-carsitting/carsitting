@@ -34,6 +34,7 @@ export const slots = {
   servicesOuverture: { file: 'services-ouverture.jpg', fallback: '/images/services-evenement.jpg', where: 'Nos services : photo du haut de page (plein écran)', format: 'Paysage, 1920 × 1080' },
   servicesHotels: { file: 'services-hotels.jpg', fallback: '/images/services-hotel.jpg', where: 'Nos services : prestation « Hôtels »', format: 'Paysage, 1600 × 1200' },
   servicesRestaurants: { file: 'services-restaurants.jpg', fallback: '/images/services-restaurant.webp', where: 'Nos services : prestation « Restaurants »', format: 'Paysage, 1600 × 1200' },
+  servicesEnseignes: { file: 'services-enseignes.jpg', fallback: '/images/voiturier-smoking.jpg', where: 'Nos services : prestation « Enseignes de prestige »', format: 'Paysage, 1600 × 1200' },
   servicesEvenements: { file: 'services-evenements.jpg', fallback: '/images/services-evenement.jpg', where: 'Nos services : prestation « Événements privés »', format: 'Paysage, 1600 × 1200' },
   aboutOuverture: { file: 'qui-sommes-nous-ouverture.jpg', fallback: '/images/paris-nuit.jpg', where: 'Qui sommes-nous : photo du haut de page (plein écran)', format: 'Paysage, 1920 × 1080' },
   aboutEquipes: { file: 'qui-sommes-nous-equipes.jpg', fallback: '/images/voiturier-smoking.jpg', where: 'Qui sommes-nous : photo à côté de « Nos équipes »', format: 'Paysage, 1600 × 840' },

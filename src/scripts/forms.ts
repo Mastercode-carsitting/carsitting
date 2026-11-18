@@ -1,7 +1,8 @@
 // Formulaires CarSitting : parcours conditionnel, validation en français, envoi.
 //
-// Envoi : Netlify Forms (aucun service tiers). Les demandes sont enregistrées dans Netlify > Forms, puis la fonction
-// netlify/functions/submission-created.mjs envoie les mails à la charte (équipe et accusé de réception).
+// Envoi : Netlify Forms (aucun service tiers) pour les devis et partenariats : la demande est enregistrée dans Netlify > Forms,
+// puis netlify/functions/submission-created.mjs envoie les mails à la charte (équipe et accusé de réception).
+// Le formulaire de recrutement (data-endpoint) envoie, lui, directement à netlify/functions/candidature.mjs avec le CV, sans rien stocker.
 // En développement local (npm run dev), Netlify n'existe pas : le formulaire ouvre alors la messagerie (mailto) pour tester.
 
 const CONTACT = 'contact@carsitting.fr';
@@ -11,6 +12,7 @@ const MSG = {
   fr: {
     required: 'Ce champ est requis.', choose: 'Veuillez choisir une option.',
     email: 'Indiquez une adresse email valide (ex. vous@exemple.fr).', tel: 'Indiquez un numéro de téléphone valide (10 chiffres minimum).',
+    fileSize: 'Fichier trop lourd (4 Mo maximum).', fileType: 'Format accepté : PDF, DOC ou DOCX.',
     dateMin: (d: string) => `Choisissez une date à partir du ${d}.`, dateMax: (d: string) => `Choisissez une date jusqu'au ${d}.`, min: (n: string) => `La valeur doit être au moins ${n}.`,
     max: (n: string) => `La valeur doit être au plus ${n}.`, integer: 'Indiquez un nombre entier.',
     pending: 'Envoi en cours…', sent: 'Demande transmise',
@@ -22,6 +24,7 @@ const MSG = {
   en: {
     required: 'This field is required.', choose: 'Please choose an option.',
     email: 'Please enter a valid email address (e.g. you@example.com).', tel: 'Please enter a valid phone number (at least 10 digits).',
+    fileSize: 'File too large (4 MB maximum).', fileType: 'Accepted formats: PDF, DOC or DOCX.',
     dateMin: (d: string) => `Please choose a date from ${d}.`, dateMax: (d: string) => `Please choose a date up to ${d}.`, min: (n: string) => `The value must be at least ${n}.`,
     max: (n: string) => `The value must be at most ${n}.`, integer: 'Please enter a whole number.',
     pending: 'Sending…', sent: 'Request sent',
@@ -43,6 +46,14 @@ function checkTel(el: Control) {
   el.setCustomValidity(v && (/[^0-9+ .()-]/.test(v) || digits < 10 || digits > 15) ? 'tel' : '');
 }
 
+// CV : PDF, DOC ou DOCX, 4 Mo maximum (limite des fonctions Netlify).
+const MAX_FILE = 4 * 1024 * 1024;
+function checkFile(el: Control) {
+  if (!(el instanceof HTMLInputElement) || el.type !== 'file') return;
+  const f = el.files?.[0];
+  el.setCustomValidity(!f ? '' : f.size > MAX_FILE ? 'size' : !/\.(pdf|docx?)$/i.test(f.name) ? 'type' : '');
+}
+
 const frDate = (iso: string) => {
   const [y, m, d] = iso.split('-');
   return d && m && y ? `${d}/${m}/${y}` : iso;
@@ -61,6 +72,7 @@ function messageFor(el: Control): string {
   if (v.valueMissing) return el instanceof HTMLSelectElement ? m.choose : m.required;
   if (v.typeMismatch && el.type === 'email') return m.email;
   if (v.customError && el.type === 'tel') return m.tel;
+  if (v.customError && el.type === 'file') return el.validationMessage === 'size' ? m.fileSize : m.fileType;
   if (v.rangeUnderflow && el.type === 'date') return m.dateMin(shownDate((el as HTMLInputElement).min));
   if (v.rangeOverflow && el.type === 'date') return m.dateMax(shownDate((el as HTMLInputElement).max));
   if (v.rangeUnderflow) return m.min((el as HTMLInputElement).min);
@@ -75,6 +87,7 @@ function controls(form: HTMLFormElement) {
 
 function showError(el: Control) {
   checkTel(el);
+  checkFile(el);
   const err = document.getElementById(el.getAttribute('aria-describedby') || '');
   const invalid = !el.disabled && !el.checkValidity();
   el.setAttribute('aria-invalid', String(invalid));
@@ -116,6 +129,7 @@ function payload(form: HTMLFormElement) {
   const multi: Record<string, string[]> = {};
   for (const el of [...form.elements] as Control[]) {
     if (!el.name || el.name === '_gotcha' || el.disabled || el.closest('fieldset:disabled')) continue;
+    if (el instanceof HTMLInputElement && el.type === 'file') continue; // le fichier est ajouté à part (voir submit)
     // Groupe de cases à cocher : les valeurs cochées sont regroupées sur une seule ligne.
     if (el instanceof HTMLInputElement && el.type === 'checkbox' && el.hasAttribute('data-multi')) {
       if (el.checked) (multi[el.name] ||= []).push(el.value);
@@ -179,14 +193,27 @@ async function submit(form: HTMLFormElement) {
   if (!import.meta.env.DEV) {
     try {
       // Envoi encodé comme un formulaire classique, avec le nom du formulaire ; « subject » devient l'objet des mails.
-      const body = new URLSearchParams({ 'form-name': form.getAttribute('name') || '', subject, ...data });
-      const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+      const fields = { 'form-name': form.getAttribute('name') || '', subject, ...data };
+      let res: Response;
+      if (form.dataset.endpoint) {
+        // Candidature : envoi direct à la fonction, avec le CV (multipart, sans en-tête Content-Type : le navigateur le fixe).
+        const body = new FormData();
+        Object.entries(fields).forEach(([k, v]) => body.append(k, v));
+        // Anti-spam : heure d'affichage et d'envoi (un robot envoie instantanément ; la fonction refuse un délai trop court).
+        body.append('_t', form.dataset.loadedAt || String(Date.now()));
+        body.append('_n', String(Date.now()));
+        form.querySelectorAll<HTMLInputElement>('input[type="file"]').forEach((i) => i.files?.[0] && body.append(i.name, i.files[0]));
+        res = await fetch(form.dataset.endpoint, { method: 'POST', body });
+      } else {
+        res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(fields).toString() });
+      }
       if (!res.ok) throw new Error(String(res.status));
       setState(form, 'success', form.dataset.success || msg().thanksLong);
       form.reset();
       form.querySelectorAll<HTMLInputElement>('input[name="Parcours"]')[0]?.dispatchEvent(new Event('change'));
     } catch {
-      setState(form, 'error', msg().failed);
+      // En cas d'échec, l'adresse proposée est celle du formulaire (recrutement@ pour les candidatures).
+      setState(form, 'error', msg().failed.replace(CONTACT, form.dataset.contact || CONTACT));
     }
     return;
   }
@@ -201,6 +228,7 @@ export function initForms() {
   document.querySelectorAll<HTMLFormElement>('form[data-form]').forEach((form) => {
     if (form.dataset.ready) return;
     form.dataset.ready = '1';
+    form.dataset.loadedAt = String(Date.now());
     form.noValidate = true; // validation prise en charge ici, avec des messages en français sous chaque champ
 
     // Pas de date passée pour un événement.
