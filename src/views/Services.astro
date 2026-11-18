@@ -12,7 +12,7 @@ const ui = t(lang);
 const copy = {
   fr: {
     title: 'Nos services — CarSitting',
-    description: 'Un service voiturier décliné pour chaque établissement : hôtels, restaurants et événements privés. À l’année, ponctuel ou événementiel, avec le même niveau d’exigence.',
+    description: 'Un service voiturier décliné pour chaque établissement : hôtels, restaurants, enseignes de prestige et événements privés. À l’année, ponctuel ou événementiel, avec le même niveau d’exigence.',
     heroLabel: 'Nos services',
     heroTitle: 'Un service, décliné pour chaque établissement.',
     heroQuote: 'Le même standard d’excellence, adapté à la nature de votre établissement.',
@@ -22,7 +22,8 @@ const copy = {
     services: [
       ['I', 'Hôtels', 'Un accueil sans rupture, du perron à la chambre. Gestion continue des arrivées et des départs, présence discrète, coordination avec votre réception.', 'Piscine et façade d’un hôtel parisien'],
       ['II', 'Restaurants', 'Vos clients accueillis devant votre établissement, leur véhicule pris en charge sur place, vos abords dégagés. Un voiturier n’est pas un chauffeur : ni circulation ni dépose, seulement la prise en charge du véhicule.', 'Terrasse de restaurant face à la tour Eiffel'],
-      ['III', 'Événements privés', 'Via votre établissement, un dispositif sur-mesure : équipe dimensionnée, arrivées multiples orchestrées, un protocole invisible pour vos invités.', 'Voituriers accueillant une invitée lors d’une soirée privée'],
+      ['III', 'Enseignes de prestige', 'Maisons, boutiques et lieux d’exception : un accueil à la hauteur de votre signature. Une présence élégante qui prolonge l’image de votre enseigne dès l’arrivée de vos clients.', 'Voituriers en tenue de soirée devant une enseigne de prestige'],
+      ['IV', 'Événements privés', 'Via votre établissement, un dispositif sur-mesure : équipe dimensionnée, arrivées multiples orchestrées, un protocole invisible pour vos invités.', 'Voituriers accueillant une invitée lors d’une soirée privée'],
     ],
     formulasLabel: 'Formules',
     formulasTitle: 'Modalités d’intervention',
@@ -32,7 +33,7 @@ const copy = {
   },
   en: {
     title: 'Our services — CarSitting',
-    description: 'A valet service tailored to every establishment: hotels, restaurants and private events. Year-round, occasional or for events, with the same standard of excellence.',
+    description: 'A valet service tailored to every establishment: hotels, restaurants, prestige brands and private events. Year-round, occasional or for events, with the same standard of excellence.',
     heroLabel: 'Our services',
     heroTitle: 'One service, tailored to every establishment.',
     heroQuote: 'The same standard of excellence, adapted to the nature of your establishment.',
@@ -42,7 +43,8 @@ const copy = {
     services: [
       ['I', 'Hotels', 'A seamless welcome, from the front steps to the room. Continuous handling of arrivals and departures, a discreet presence, coordination with your front desk.', 'Pool and façade of a Parisian hotel'],
       ['II', 'Restaurants', 'Your guests welcomed in front of your establishment, their vehicle taken in charge on the spot, your surroundings kept clear. A valet is not a chauffeur: no driving about and no drop-offs, only taking charge of the vehicle.', 'Restaurant terrace facing the Eiffel Tower'],
-      ['III', 'Private events', 'Arranged through your establishment: a bespoke set-up, a team sized to the occasion, multiple arrivals orchestrated, a protocol invisible to your guests.', 'Valets welcoming a guest at a private evening'],
+      ['III', 'Prestige brands', 'Fashion houses, boutiques and landmark venues: a welcome worthy of your name. An elegant presence that extends your brand’s image from the moment your guests arrive.', 'Valets in evening dress outside a prestige brand'],
+      ['IV', 'Private events', 'Arranged through your establishment: a bespoke set-up, a team sized to the occasion, multiple arrivals orchestrated, a protocol invisible to your guests.', 'Valets welcoming a guest at a private evening'],
     ],
     formulasLabel: 'Formats',
     formulasTitle: 'Ways of working',
@@ -51,7 +53,7 @@ const copy = {
     partners: 'They already trust us',
   },
 }[lang];
-const media = [photo('servicesHotels'), photo('servicesRestaurants'), photo('servicesEvenements')];
+const media = [photo('servicesHotels'), photo('servicesRestaurants'), photo('servicesEnseignes'), photo('servicesEvenements')];
 ---
 <Base title={copy.title} description={copy.description}>
   <Hero
