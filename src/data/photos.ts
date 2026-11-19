@@ -29,6 +29,7 @@ export const slots = {
   accueilGeste: { file: 'accueil-le-geste.jpg', fallback: '/images/voiturier-demeure.jpg', where: 'Accueil : grande photo à côté du titre « Premier visage à l’arrivée… »', format: 'Portrait, 1200 × 1440' },
   accueilCarteHotels: { file: 'accueil-carte-hotels.jpg', fallback: '/images/hotel.jpg', where: 'Accueil : carte « Hôtels »', format: 'Portrait, 1200 × 1500' },
   accueilCarteRestaurants: { file: 'accueil-carte-restaurants.jpg', fallback: '/images/restaurant.jpg', where: 'Accueil : carte « Restaurants »', format: 'Portrait, 1200 × 1500' },
+  accueilCarteEnseignes: { file: 'accueil-carte-enseignes.jpg', fallback: '/images/voiturier-smoking.jpg', where: 'Accueil : carte « Enseignes de prestige »', format: 'Portrait, 1200 × 1500' },
   accueilCarteEvenements: { file: 'accueil-carte-evenements.jpg', fallback: '/images/evenement.jpg', where: 'Accueil : carte « Événements privés »', format: 'Portrait, 1200 × 1500' },
   accueilBandeauDevis: { file: 'accueil-bandeau-devis.jpg', fallback: '/images/voiturier-smoking.jpg', where: 'Accueil : bandeau « Demander un devis » en bas de page', format: 'Paysage, 1920 × 1000' },
   servicesOuverture: { file: 'services-ouverture.jpg', fallback: '/images/services-evenement.jpg', where: 'Nos services : photo du haut de page (plein écran)', format: 'Paysage, 1920 × 1080' },
