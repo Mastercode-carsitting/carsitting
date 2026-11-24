@@ -32,7 +32,8 @@ const copy = {
     cards: [
       ['I', 'Hôtels', 'Une arrivée sans rupture, au rythme de votre réception.', 'Voiturier accueillant une cliente devant un hôtel'],
       ['II', 'Restaurants', 'Le véhicule pris en charge devant votre porte, avec discrétion, sans aucun frottement visible.', 'Salle de restaurant parisien'],
-      ['III', 'Événements privés', 'Un protocole lisible pour vos invités, invisible pour votre déroulé.', 'Voiturier ouvrant la portière lors d’un événement privé'],
+      ['III', 'Enseignes de prestige', 'Un accueil à la hauteur de votre signature, dès l’arrivée de vos clients.', 'Voituriers en tenue de soirée devant une enseigne de prestige'],
+      ['IV', 'Événements privés', 'Un protocole lisible pour vos invités, invisible pour votre déroulé.', 'Voiturier ouvrant la portière lors d’un événement privé'],
     ],
     partners: 'Ils nous font confiance',
     approachLabel: 'L’approche',
@@ -65,7 +66,8 @@ const copy = {
     cards: [
       ['I', 'Hotels', 'A seamless arrival, in step with your front desk.', 'Valet welcoming a guest in front of a hotel'],
       ['II', 'Restaurants', 'Your guests’ car taken in charge at your door, discreetly, with no visible friction.', 'Parisian restaurant dining room'],
-      ['III', 'Private events', 'A protocol clear to your guests, invisible in your running order.', 'Valet opening a car door at a private event'],
+      ['III', 'Prestige brands', 'A welcome worthy of your name, from the moment your guests arrive.', 'Valets in evening dress outside a prestige brand'],
+      ['IV', 'Private events', 'A protocol clear to your guests, invisible in your running order.', 'Valet opening a car door at a private event'],
     ],
     partners: 'They trust us',
     approachLabel: 'Our approach',
@@ -78,7 +80,7 @@ const copy = {
     ],
   },
 }[lang];
-const cardMedia = [[photo('accueilCarteHotels'), 'center 55%'], [photo('accueilCarteRestaurants'), 'center'], [photo('accueilCarteEvenements'), '60% center']] as const;
+const cardMedia = [[photo('accueilCarteHotels'), 'center 55%'], [photo('accueilCarteRestaurants'), 'center'], [photo('accueilCarteEnseignes'), 'center 30%'], [photo('accueilCarteEvenements'), '60% center']] as const;
 ---
 <Base title={copy.title} description={copy.description}>
   <Hero
@@ -128,7 +130,7 @@ const cardMedia = [[photo('accueilCarteHotels'), 'center 55%'], [photo('accueilC
         </div>
         <a href={path('services', lang)} class="link-arrow shrink-0">{copy.serviceLink}</a>
       </div>
-      <div class="mt-10 grid gap-10 md:mt-12 md:grid-cols-3 md:gap-8 lg:gap-12">
+      <div class="mt-10 grid gap-10 md:mt-12 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-8">
         {copy.cards.map(([n, title, text, alt], i) => (
           <article class="card">
             <a href={path('services', lang)} class="flex flex-col" aria-label={`${title} — ${copy.serviceLink.toLowerCase()}`}>
